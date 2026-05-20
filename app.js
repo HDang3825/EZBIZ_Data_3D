@@ -8,7 +8,7 @@ import {
   handleMouseClick,
   getCameraZoomTargets,
   getOverviewTargets
-} from './model-viewer.js?v=14';
+} from './model-viewer.js?v=16';
 
 // Các trạng thái của Camera
 const STATE_OVERVIEW = 0;
@@ -107,7 +107,7 @@ function initThree() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 0.65;
 
   // Khởi tạo bộ điều khiển OrbitControls (xoay camera)
   controls = new OrbitControls(camera, renderer.domElement);
@@ -121,6 +121,14 @@ function initThree() {
   // Tạo môi trường phản xạ (Environment Map) giả lập studio để chất liệu kim loại của laptop phản chiếu ánh sáng trắng sáng tự nhiên
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   const roomEnv = new RoomEnvironment(renderer);
+  // Traverse và làm dịu cường độ các tấm sáng trong RoomEnvironment để tránh phản xạ quá rực làm cháy sáng vỏ máy
+  roomEnv.traverse((child) => {
+    if (child.material && child.material.color) {
+      child.material.color.multiplyScalar(0.25);
+    }
+  });
+
+  
   const envTexture = pmremGenerator.fromScene(roomEnv, 0.04).texture;
   scene.environment = envTexture;
   pmremGenerator.dispose();
@@ -130,9 +138,9 @@ function initThree() {
   const ambientLight = new THREE.AmbientLight('#ffffff', 0.25);
   scene.add(ambientLight);
 
-  // Ánh sáng chính chiếu góc xéo phía trước tầm mắt (hạ thấp Y từ 12 xuống 3.5 để loại bỏ góc chiếu từ trên cao xuống)
-  const dirLight1 = new THREE.DirectionalLight('#ffffff', 0.45);
-  dirLight1.position.set(2, 3.5, 8);
+  // Ánh sáng chính chiếu góc xéo ngang tầm mắt phía trước (giảm Y xuống 1.5 để hoàn toàn loại bỏ góc chiếu từ trên cao)
+  const dirLight1 = new THREE.DirectionalLight('#ffffff', 0.15);
+  dirLight1.position.set(2, 1.5, 8);
   dirLight1.castShadow = true;
   dirLight1.shadow.mapSize.width = 2048;
   dirLight1.shadow.mapSize.height = 2048;
