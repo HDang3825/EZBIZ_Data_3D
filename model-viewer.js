@@ -25,7 +25,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
   const loader = new GLTFLoader();
 
   loader.load(
-    'mhlpglb.glb',
+    'DMT-EB.glb',
     (gltf) => {
       laptopModel = gltf.scene;
       onLogCallback("[LOADER] Model loaded successfully. Analysing structure...");
@@ -50,15 +50,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
 
       // Duyệt qua mô hình để thiết lập ánh sáng, vật liệu và tìm màn hình
       laptopModel.traverse((child) => {
-        // Bỏ/ẩn các mesh chữ "mặt A của laptop" hoặc nhãn dạng chữ (trừ 'Plane' vì Plane chính là màn hình hiển thị trong mô hình này)
-        if (child.name && (
-          child.name === 'Text.002' || 
-          child.name.toLowerCase().includes('text') || 
-          child.name.toLowerCase().includes('chu') || 
-          child.name.toLowerCase().includes('mata')
-        )) {
-          child.visible = false;
-        }
+
 
         if (child.isMesh) {
           // Bỏ qua nếu mesh đã bị ẩn

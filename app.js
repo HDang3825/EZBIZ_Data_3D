@@ -8,7 +8,7 @@ import {
   handleMouseClick,
   getCameraZoomTargets,
   getOverviewTargets
-} from './model-viewer.js?v=16';
+} from './model-viewer.js';
 
 // Các trạng thái của Camera
 const STATE_OVERVIEW = 0;
@@ -128,7 +128,7 @@ function initThree() {
     }
   });
 
-  
+
   const envTexture = pmremGenerator.fromScene(roomEnv, 0.04).texture;
   scene.environment = envTexture;
   pmremGenerator.dispose();
