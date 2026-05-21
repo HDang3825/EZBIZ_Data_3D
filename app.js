@@ -223,22 +223,35 @@ function setupEvents() {
 
   // Sự kiện click chuột để Raycast click
   window.addEventListener('click', (e) => {
+    // Không kích hoạt zoom/thoát zoom khi người dùng đang click vào các phần tử UI nút bấm
+    if (e.target.closest('.dashboard-ui') || e.target.closest('button')) return;
+
     if (systemState === STATE_OVERVIEW) {
       handleMouseClick(e, camera, window.innerWidth, window.innerHeight, triggerZoomIn);
-    }
-  });
-
-  // Đăng ký các sự kiện nút bấm tương tác
-  document.getElementById('btn-zoom-screen').addEventListener('click', triggerZoomIn);
-  document.getElementById('btn-reset-view').addEventListener('click', () => {
-    if (systemState === STATE_OVERVIEW) {
-      controls.reset();
-      logToTerminal("Camera position reset to default overview.");
-    } else {
+    } else if (systemState === STATE_ZOOMED_IN) {
+      // Zoom out khi click bất kỳ vị trí nào ngoài màn hình khi đang ở trạng thái zoom cận cảnh
       triggerZoomOut();
     }
   });
-  document.getElementById('btn-back').addEventListener('click', triggerZoomOut);
+
+  // Đăng ký các sự kiện nút bấm tương tác (có kiểm tra an toàn sự tồn tại của phần tử)
+  const btnZoom = document.getElementById('btn-zoom-screen');
+  if (btnZoom) btnZoom.addEventListener('click', triggerZoomIn);
+
+  const btnReset = document.getElementById('btn-reset-view');
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      if (systemState === STATE_OVERVIEW) {
+        controls.reset();
+        logToTerminal("Camera position reset to default overview.");
+      } else {
+        triggerZoomOut();
+      }
+    });
+  }
+
+  const btnBack = document.getElementById('btn-back');
+  if (btnBack) btnBack.addEventListener('click', triggerZoomOut);
 }
 
 // Vòng lặp Render chính (Animation loop)
