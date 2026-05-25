@@ -20,31 +20,41 @@ export function updateScreenTexture(time) {
 
 // Tải mô hình 3D Laptop dạng GLTF/GLB
 export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
-  onLogCallback("[LOADER] Fetching laptop model mhlpglb.glb...");
+  onLogCallback("[LOADER] Fetching laptop model Imac.glb...");
 
   const loader = new GLTFLoader();
 
   loader.load(
-    'DMT-EB.glb',
+    'Imac.glb',
     (gltf) => {
-      laptopModel = gltf.scene;
+      const modelGroup = gltf.scene;
+      laptopModel = new THREE.Group();
+      laptopModel.add(modelGroup);
       onLogCallback("[LOADER] Model loaded successfully. Analysing structure...");
 
       // Tính toán Bounding Box để căn giữa và tự động co giãn mô hình
-      const box = new THREE.Box3().setFromObject(laptopModel);
+      const box = new THREE.Box3().setFromObject(modelGroup);
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
 
       onLogCallback(`[LOADER] Dimensions: W:${size.x.toFixed(2)}, H:${size.y.toFixed(2)}, D:${size.z.toFixed(2)}`);
 
-      // Đưa tâm hình học của mô hình về gốc tọa độ
-      laptopModel.position.sub(center);
+      // Căn giữa modelGroup bên trong container laptopModel
+      modelGroup.position.copy(center).multiplyScalar(-1);
 
       // Co giãn mô hình về kích thước chuẩn (độ rộng khoảng 10 đơn vị)
       const maxDim = Math.max(size.x, size.y, size.z);
       const targetSize = 10;
       const scaleFactor = targetSize / maxDim;
       laptopModel.scale.setScalar(scaleFactor);
+
+      // Xoay 180 độ quanh Y để mặt trước hướng về camera, và ngửa ra sau một chút quanh X
+      laptopModel.rotation.order = 'YXZ';
+      laptopModel.rotation.y = Math.PI;
+      // laptopModel.rotation.x = -0.15; // Ngửa ra sau ~8.5 độ
+
+      // Hạ thấp máy tính xuống sát mặt bàn
+      laptopModel.position.y = -1.35;
 
       onLogCallback(`[LOADER] Auto-scaled model by factor: ${scaleFactor.toFixed(4)}`);
 
@@ -252,7 +262,7 @@ export function getCameraZoomTargets() {
 export function getOverviewTargets() {
   // Vị trí camera mặc định để nhìn toàn cảnh laptop
   return {
-    position: new THREE.Vector3(0, 8, 12),
+    position: new THREE.Vector3(0, 2.5, 13),
     target: new THREE.Vector3(0, 0, 0)
   };
 }

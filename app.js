@@ -24,7 +24,7 @@ let scene, camera, renderer, controls;
 // Các vector đích để phục vụ phép nội suy (di chuyển camera)
 const targetCamPos = new THREE.Vector3();
 const targetLookAt = new THREE.Vector3();
-const overviewCamPos = new THREE.Vector3(0, 8, 12);
+const overviewCamPos = new THREE.Vector3(0, 2.5, 13);
 const overviewLookAt = new THREE.Vector3(0, 0, 0);
 
 // Khởi tạo đồng hồ hệ thống
