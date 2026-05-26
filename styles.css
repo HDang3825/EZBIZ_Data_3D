@@ -675,6 +675,7 @@ h2 {
   /* Căn thẳng hàng trên (icon ngang dòng đầu tiên của h4) */
 }
 
+.comparison-item.active,
 .comparison-item:hover {
   background: rgba(56, 189, 248, 0.08);
   border-color: rgba(56, 189, 248, 0.4);
@@ -701,6 +702,7 @@ h2 {
   height: 50%;
 }
 
+.comparison-item.active .item-icon,
 .comparison-item:hover .item-icon {
   background: #38bdf8;
   color: #0f172a;

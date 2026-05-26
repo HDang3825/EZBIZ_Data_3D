@@ -383,6 +383,41 @@ function setupEvents() {
   // Các bút chuyển slide thường giả lập PageDown/PageUp hoặc ArrowDown/ArrowUp hoặc ArrowRight/ArrowLeft
   window.addEventListener('keydown', (e) => {
     // -------------------------------------------------------------
+    // TÍNH NĂNG ACTIVE HOVER CÁC MỤC DATA WAREHOUSE BẰNG PHÍM 1, 2, 3, 4 (STAGE 2)
+    // -------------------------------------------------------------
+    if (currentStage === STAGE_2_WAREHOUSE) {
+      const numKeys = ['1', '2', '3', '4'];
+      if (numKeys.includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const items = document.querySelectorAll('.comparison-item');
+        const targetIndex = parseInt(e.key) - 1;
+
+        if (items[targetIndex]) {
+          const isAlreadyActive = items[targetIndex].classList.contains('active');
+          
+          // Xóa class active ở tất cả các mục
+          items.forEach(item => item.classList.remove('active'));
+
+          if (!isAlreadyActive) {
+            // Thêm active vào mục được chọn
+            items[targetIndex].classList.add('active');
+            
+            // Cuộn mượt mà đến mục đó trong bảng nếu cần
+            items[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            const title = items[targetIndex].querySelector('h4').textContent;
+            logToTerminal(`🔍 Đang thuyết trình mục ${e.key}: ${title}`, "success");
+          } else {
+            logToTerminal(`🔍 Bỏ chọn mục ${e.key}`, "warning");
+          }
+        }
+        return;
+      }
+    }
+
+    // -------------------------------------------------------------
     // TÍNH NĂNG ĐIỀU CHỈNH VỊ TRÍ LAPTOP/IMAC (GIAI ĐOẠN 1) THEO YÊU CẦU CỦA USER
     // -------------------------------------------------------------
     const laptop = getLaptopModel();
@@ -469,49 +504,85 @@ function setupEvents() {
         triggerStage2Transition(); // Đặt currentSlide = 2 trong hàm
       } else if (currentStage === STAGE_2_WAREHOUSE) {
         const infoPanel = document.getElementById('dw-info-panel');
+        const items = document.querySelectorAll('.comparison-item');
         if (infoPanel) {
           if (currentSlide === 2) {
             e.preventDefault();
             e.stopPropagation();
             currentSlide = 3;
             infoPanel.classList.remove('hidden');
-            logToTerminal("[STAGE 2] Displayed Comparison Panel.", "success");
-          } else if (currentSlide === 3) {
+            // Reset active classes and set active on the first item
+            items.forEach(item => item.classList.remove('active'));
+            if (items[0]) {
+              items[0].classList.add('active');
+              items[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              logToTerminal(`[STAGE 2] Hiện bảng & mục 1: ${items[0].querySelector('h4').textContent}`, "success");
+            }
+          } else if (currentSlide >= 3 && currentSlide <= 5) {
             e.preventDefault();
             e.stopPropagation();
-            currentSlide = 4;
+            const targetIndex = currentSlide - 2; // currentSlide 3 -> index 1, slide 4 -> index 2, slide 5 -> index 3
+            currentSlide++;
+            items.forEach(item => item.classList.remove('active'));
+            if (items[targetIndex]) {
+              items[targetIndex].classList.add('active');
+              items[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              logToTerminal(`[STAGE 2] Mục ${targetIndex + 1}: ${items[targetIndex].querySelector('h4').textContent}`, "success");
+            }
+          } else if (currentSlide === 6) {
+            e.preventDefault();
+            e.stopPropagation();
+            currentSlide = 7;
+            items.forEach(item => item.classList.remove('active'));
             infoPanel.classList.add('hidden');
             infoPanel.classList.remove('collapsed');
             const toggleIcon = document.getElementById('toggle-icon');
             if (toggleIcon) {
               toggleIcon.innerHTML = `<polyline points="18 15 12 9 6 15"></polyline>`;
             }
-            logToTerminal("[STAGE 2] Hidden Comparison Panel.", "warning");
+            logToTerminal("[STAGE 2] Đóng bảng so sánh.", "warning");
           }
-          // Nếu currentSlide === 4, bấm ArrowRight tiếp theo sẽ không hiển thị lại bảng
         }
       }
     } else if (prevKeys.includes(e.key)) {
       if (currentStage === STAGE_2_WAREHOUSE) {
         const infoPanel = document.getElementById('dw-info-panel');
+        const items = document.querySelectorAll('.comparison-item');
         if (infoPanel) {
-          if (currentSlide === 4) {
+          if (currentSlide === 7) {
             e.preventDefault();
             e.stopPropagation();
-            currentSlide = 3;
+            currentSlide = 6;
             infoPanel.classList.remove('hidden');
-            logToTerminal("[STAGE 2] Displayed Comparison Panel.", "success");
+            items.forEach(item => item.classList.remove('active'));
+            if (items[3]) {
+              items[3].classList.add('active');
+              items[3].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              logToTerminal(`[STAGE 2] Hiện lại bảng & mục 4: ${items[3].querySelector('h4').textContent}`, "success");
+            }
+          } else if (currentSlide >= 4 && currentSlide <= 6) {
+            e.preventDefault();
+            e.stopPropagation();
+            currentSlide--;
+            const targetIndex = currentSlide - 3; // currentSlide 5 -> index 2, slide 4 -> index 1, slide 3 -> index 0
+            items.forEach(item => item.classList.remove('active'));
+            if (items[targetIndex]) {
+              items[targetIndex].classList.add('active');
+              items[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              logToTerminal(`[STAGE 2] Mục ${targetIndex + 1}: ${items[targetIndex].querySelector('h4').textContent}`, "success");
+            }
           } else if (currentSlide === 3) {
             e.preventDefault();
             e.stopPropagation();
             currentSlide = 2;
+            items.forEach(item => item.classList.remove('active'));
             infoPanel.classList.add('hidden');
             infoPanel.classList.remove('collapsed');
             const toggleIcon = document.getElementById('toggle-icon');
             if (toggleIcon) {
               toggleIcon.innerHTML = `<polyline points="18 15 12 9 6 15"></polyline>`;
             }
-            logToTerminal("[STAGE 2] Hidden Comparison Panel.", "warning");
+            logToTerminal("[STAGE 2] Ẩn bảng so sánh.", "warning");
           } else if (currentSlide === 2) {
             e.preventDefault();
             e.stopPropagation();
@@ -604,6 +675,9 @@ function animate() {
       if (nodeName) nodeName.textContent = "Data Warehouse Core";
 
       logToTerminal("[STAGE 2] Entered Virtual Data Warehouse successfully.", "success");
+      logToTerminal("💡 THUYẾT TRÌNH DATA WAREHOUSE (Stage 2):", "warning");
+      logToTerminal(" - Nhấn Mũi Tên Phải (ArrowRight) / PageDown để xem & Highlight tuần tự từng mục trong bảng!", "cyan");
+      logToTerminal(" - Có thể bấm phím số 1, 2, 3, 4 để chuyển nhanh trực tiếp đến mục bất kỳ!", "cyan");
     }
   }
 
