@@ -31,6 +31,78 @@
   <!-- Overlay UI -->
   <div class="dashboard-ui">
 
+    <!-- Bảng so sánh Data Warehouse vs Database (Hiển thị ở Giai đoạn 2) -->
+    <div id="dw-info-panel" class="comparison-panel glass-card hidden">
+      <div class="panel-header-bar">
+        <div class="panel-title-group">
+          <span class="pulse-dot"></span>
+          <h3>DATA ARCHITECTURE ANALYSIS</h3>
+        </div>
+        <button id="btn-toggle-panel" class="btn-icon" title="Thu nhỏ / Mở rộng">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" id="toggle-icon">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="panel-content-scroll">
+        <h2 class="panel-main-title">LÝ DO CHỌN DATA WAREHOUSE <br><span class="highlight-text">THAY VÌ DATABASE TRUYỀN THỐNG</span></h2>
+        
+        <div class="comparison-grid">
+          <div class="comparison-item">
+            <div class="item-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </div>
+            <div class="item-text">
+              <h4>Tối Ưu Hóa Phân Tích (OLAP)</h4>
+              <p>Database tối ưu cho giao dịch nhanh hàng ngày (OLTP). Data Warehouse tối ưu cho truy vấn phân tích, tổng hợp báo cáo trên lượng dữ liệu khổng lồ.</p>
+            </div>
+          </div>
+
+          <div class="comparison-item">
+            <div class="item-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+            <div class="item-text">
+              <h4>Hợp Nhất Dữ Liệu Đa Nguồn</h4>
+              <p>Database chỉ chứa dữ liệu một hệ thống đơn lẻ. Data Warehouse liên kết, đồng bộ dữ liệu từ nhiều phòng ban, CRM, ERP về một nơi duy nhất.</p>
+            </div>
+          </div>
+
+          <div class="comparison-item">
+            <div class="item-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <div class="item-text">
+              <h4>Bảo Vệ Hiệu Năng Vận Hành</h4>
+              <p>Chạy các báo cáo phức tạp trực tiếp trên Database có thể làm treo hệ thống. Data Warehouse chạy độc lập giúp hệ thống vận hành luôn mượt mà.</p>
+            </div>
+          </div>
+
+          <div class="comparison-item">
+            <div class="item-icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <div class="item-text">
+              <h4>Làm Sạch & Chuẩn Hóa ETL</h4>
+              <p>Dữ liệu Database thô và phân mảnh. Data Warehouse trải qua quy trình lọc nhiễu, chuẩn hóa cấu trúc giúp thông tin phân tích đạt độ chính xác cao.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Main scripts -->

@@ -27,6 +27,7 @@ const STAGE_2_WAREHOUSE = 2;
 
 let systemState = STATE_OVERVIEW;
 let currentStage = STAGE_1_IMAC;
+let currentSlide = 1; // 1: iMac Overview, 2: Warehouse, 3: Warehouse + Panel, 4: Warehouse Panel Dismissed
 
 // Biến hỗ trợ phân biệt Click và Drag (để xoay không bị thoát cảnh)
 let clickStartX = 0;
@@ -121,8 +122,8 @@ function initThree() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.65;
+  renderer.toneMapping = THREE.LinearToneMapping; // Đổi sang Linear giống sandbox
+  renderer.toneMappingExposure = 1.0; // Exposure mặc định = 1.0 (0.0 trong GUI gltf-viewer)
 
   // Khởi tạo bộ điều khiển OrbitControls (xoay camera)
   controls = new OrbitControls(camera, renderer.domElement);
@@ -133,27 +134,27 @@ function initThree() {
   controls.maxDistance = 25;
   controls.target.copy(overviewLookAt);
 
-  // Tạo môi trường phản xạ (Environment Map) giả lập studio để chất liệu kim loại của laptop phản chiếu ánh sáng trắng sáng tự nhiên
+  // Ánh sáng chính di chuyển theo camera (Headlight) giúp các góc nhìn luôn sáng rõ giống sandbox
+  const cameraLight = new THREE.DirectionalLight('#ffffff', 1.8);
+  cameraLight.position.set(0.5, 0.5, 1.0); // Nghiêng nhẹ góc chiếu so với camera
+  camera.add(cameraLight);
+  scene.add(camera); // Phải thêm camera vào scene để cameraLight hoạt động
+
+  // Tạo môi trường phản xạ (Environment Map) giả lập studio để chất liệu kim loại phản chiếu ánh sáng tự nhiên
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   const roomEnv = new RoomEnvironment(renderer);
-  // Traverse và làm dịu cường độ các tấm sáng trong RoomEnvironment để tránh phản xạ quá rực làm cháy sáng vỏ máy
-  roomEnv.traverse((child) => {
-    if (child.material && child.material.color) {
-      child.material.color.multiplyScalar(0.25);
-    }
-  });
-
+  // Loại bỏ nhân vật làm dịu màu (multiplyScalar 0.25) để phản xạ kim loại đạt độ trắng sáng như môi trường "Neutral" mặc định
   const envTexture = pmremGenerator.fromScene(roomEnv, 0.04).texture;
   scene.environment = envTexture;
   pmremGenerator.dispose();
   roomEnv.dispose();
 
-  // Ánh sáng môi trường dịu (nhường vai trò phản xạ và chiếu sáng chính cho Environment Map)
-  const ambientLight = new THREE.AmbientLight('#ffffff', 0.25);
+  // Ánh sáng môi trường dịu (khớp với ambientIntensity = 0.3 của sandbox)
+  const ambientLight = new THREE.AmbientLight('#ffffff', 0.3);
   scene.add(ambientLight);
 
-  // Ánh sáng chính chiếu góc xéo ngang tầm mắt phía trước (giảm Y xuống 1.5 để hoàn toàn loại bỏ góc chiếu từ trên cao)
-  const dirLight1 = new THREE.DirectionalLight('#ffffff', 0.15);
+  // Ánh sáng cố định chiếu bóng đổ (độ sáng 0.7, tổng cường độ chiếu trực tiếp = 1.8 + 0.7 = 2.5 khớp với sandbox)
+  const dirLight1 = new THREE.DirectionalLight('#ffffff', 0.7);
   dirLight1.position.set(2, 1.5, 8);
   dirLight1.castShadow = true;
   dirLight1.shadow.mapSize.width = 2048;
@@ -167,12 +168,7 @@ function initThree() {
   dirLight1.shadow.bias = -0.0005;
   scene.add(dirLight1);
 
-  // Ánh sáng phụ mềm tầm thấp ở phía sau để chiếu nhẹ các góc khuất
-  const dirLight2 = new THREE.DirectionalLight('#ffffff', 0.1);
-  dirLight2.position.set(-5, 2, -5);
-  scene.add(dirLight2);
-
-  logToTerminal("Three.js Engine initialized.", "success");
+  logToTerminal("Three.js Engine initialized with Sandbox Studio Lighting.", "success");
 }
 
 // Kích hoạt hiệu ứng hoạt ảnh Zoom màn hình
@@ -192,13 +188,21 @@ function triggerZoomIn() {
   // Làm mờ các bảng UI để nhìn rõ màn hình laptop hơn
   const panelLeft = document.querySelector('.panel-left');
   const panelRight = document.querySelector('.panel-right');
-  if (panelLeft) panelLeft.style.opacity = '0.3';
-  if (panelRight) panelRight.style.opacity = '0.3';
+  if (panelLeft) {
+    panelLeft.style.opacity = '0.3';
+    panelLeft.style.pointerEvents = 'auto';
+  }
+  if (panelRight) {
+    panelRight.style.opacity = '0.3';
+    panelRight.style.pointerEvents = 'auto';
+  }
 }
 
 // Kích hoạt hiệu ứng hoạt ảnh Zoom ra ngoài tổng quan
 function triggerZoomOut() {
   if (systemState === STATE_OVERVIEW || systemState === STATE_ZOOMING_OUT) return;
+
+  currentSlide = 1; // Đồng bộ slide về trang đầu
 
   if (currentStage === STAGE_2_WAREHOUSE) {
     // 1. Chuyển lại mô hình sang iMac
@@ -219,6 +223,17 @@ function triggerZoomOut() {
 
     currentStage = STAGE_1_IMAC;
 
+    // Ẩn bảng so sánh Data Warehouse và trả về trạng thái mặc định
+    const infoPanel = document.getElementById('dw-info-panel');
+    if (infoPanel) {
+      infoPanel.classList.add('hidden');
+      infoPanel.classList.remove('collapsed');
+      const toggleIcon = document.getElementById('toggle-icon');
+      if (toggleIcon) {
+        toggleIcon.innerHTML = `<polyline points="18 15 12 9 6 15"></polyline>`;
+      }
+    }
+
     // Đổi tiêu đề UI về mặc định
     const nodeName = document.getElementById('node-name');
     if (nodeName) nodeName.textContent = "Overview Laptop";
@@ -236,13 +251,21 @@ function triggerZoomOut() {
   // Khôi phục lại độ hiển thị của các panel UI
   const panelLeft = document.querySelector('.panel-left');
   const panelRight = document.querySelector('.panel-right');
-  if (panelLeft) panelLeft.style.opacity = '1';
-  if (panelRight) panelRight.style.opacity = '1';
+  if (panelLeft) {
+    panelLeft.style.opacity = '1';
+    panelLeft.style.pointerEvents = 'auto';
+  }
+  if (panelRight) {
+    panelRight.style.opacity = '1';
+    panelRight.style.pointerEvents = 'auto';
+  }
 }
 
 // Bắt đầu quá trình chuyển cảnh từ iMac sang Data Warehouse (Giai đoạn 2)
 function triggerStage2Transition() {
   if (currentStage !== STAGE_1_IMAC) return;
+  
+  currentSlide = 2; // Đồng bộ slide sang trang 2 (Warehouse ẩn bảng)
   
   // Lấy tọa độ zoom cận cảnh màn hình để làm mục tiêu bay trung gian
   const zoomTargets = getCameraZoomTargets();
@@ -257,8 +280,14 @@ function triggerStage2Transition() {
   // Làm mờ các bảng UI để tập trung vào hành lang 3D
   const panelLeft = document.querySelector('.panel-left');
   const panelRight = document.querySelector('.panel-right');
-  if (panelLeft) panelLeft.style.opacity = '0';
-  if (panelRight) panelRight.style.opacity = '0';
+  if (panelLeft) {
+    panelLeft.style.opacity = '0';
+    panelLeft.style.pointerEvents = 'none';
+  }
+  if (panelRight) {
+    panelRight.style.opacity = '0';
+    panelRight.style.pointerEvents = 'none';
+  }
 }
 
 // Đăng ký các sự kiện tương tác của UI & Cửa sổ trình duyệt
@@ -307,27 +336,7 @@ function setupEvents() {
     }
   });
 
-  // Sự kiện click chuột để Raycast click
-  window.addEventListener('click', (e) => {
-    // Nếu là thao tác kéo xoay camera, bỏ qua sự kiện click để tránh thoát cảnh
-    if (isDragging) {
-      isDragging = false;
-      return;
-    }
 
-    // Không kích hoạt zoom/thoát zoom khi người dùng đang click vào các phần tử UI nút bấm
-    if (e.target.closest('.dashboard-ui') || e.target.closest('button')) return;
-
-    if (systemState === STATE_OVERVIEW) {
-      handleMouseClick(e, camera, window.innerWidth, window.innerHeight, triggerZoomIn);
-    } else if (systemState === STATE_ZOOMED_IN) {
-      // Chỉ zoom out khi click ngoài màn hình ở Giai đoạn 1 (iMac)
-      // Ở Giai đoạn 2 (Warehouse), nhấp chuột trên canvas không tự động thoát về iMac
-      if (currentStage === STAGE_1_IMAC) {
-        triggerZoomOut();
-      }
-    }
-  });
 
   // Đăng ký các sự kiện nút bấm tương tác (có kiểm tra an toàn sự tồn tại của phần tử)
   const btnZoom = document.getElementById('btn-zoom-screen');
@@ -350,6 +359,26 @@ function setupEvents() {
   const btnBack = document.getElementById('btn-back');
   if (btnBack) btnBack.addEventListener('click', triggerZoomOut);
 
+  // Đăng ký sự kiện Thu nhỏ / Mở rộng bảng so sánh ở Giai đoạn 2
+  const btnTogglePanel = document.getElementById('btn-toggle-panel');
+  const infoPanel = document.getElementById('dw-info-panel');
+  const toggleIcon = document.getElementById('toggle-icon');
+  if (btnTogglePanel && infoPanel) {
+    btnTogglePanel.addEventListener('click', (e) => {
+      e.stopPropagation(); // Tránh sự kiện nhấp lan ra ngoài canvas
+      const isCollapsed = infoPanel.classList.toggle('collapsed');
+      if (toggleIcon) {
+        if (isCollapsed) {
+          // Biểu tượng mũi tên đi xuống
+          toggleIcon.innerHTML = `<polyline points="6 9 12 15 18 9"></polyline>`;
+        } else {
+          // Biểu tượng mũi tên đi lên
+          toggleIcon.innerHTML = `<polyline points="18 15 12 9 6 15"></polyline>`;
+        }
+      }
+    });
+  }
+
   // Lắng nghe phím mũi tên và các phím điều khiển từ xa của bút chuyển slide (presenter clicker)
   // Các bút chuyển slide thường giả lập PageDown/PageUp hoặc ArrowDown/ArrowUp hoặc ArrowRight/ArrowLeft
   window.addEventListener('keydown', (e) => {
@@ -360,13 +389,58 @@ function setupEvents() {
       if (currentStage === STAGE_1_IMAC && (systemState === STATE_OVERVIEW || systemState === STATE_ZOOMED_IN)) {
         e.preventDefault();
         e.stopPropagation();
-        triggerStage2Transition();
+        triggerStage2Transition(); // Đặt currentSlide = 2 trong hàm
+      } else if (currentStage === STAGE_2_WAREHOUSE) {
+        const infoPanel = document.getElementById('dw-info-panel');
+        if (infoPanel) {
+          if (currentSlide === 2) {
+            e.preventDefault();
+            e.stopPropagation();
+            currentSlide = 3;
+            infoPanel.classList.remove('hidden');
+            logToTerminal("[STAGE 2] Displayed Comparison Panel.", "success");
+          } else if (currentSlide === 3) {
+            e.preventDefault();
+            e.stopPropagation();
+            currentSlide = 4;
+            infoPanel.classList.add('hidden');
+            infoPanel.classList.remove('collapsed');
+            const toggleIcon = document.getElementById('toggle-icon');
+            if (toggleIcon) {
+              toggleIcon.innerHTML = `<polyline points="18 15 12 9 6 15"></polyline>`;
+            }
+            logToTerminal("[STAGE 2] Hidden Comparison Panel.", "warning");
+          }
+          // Nếu currentSlide === 4, bấm ArrowRight tiếp theo sẽ không hiển thị lại bảng
+        }
       }
     } else if (prevKeys.includes(e.key)) {
       if (currentStage === STAGE_2_WAREHOUSE) {
-        e.preventDefault();
-        e.stopPropagation();
-        triggerZoomOut();
+        const infoPanel = document.getElementById('dw-info-panel');
+        if (infoPanel) {
+          if (currentSlide === 4) {
+            e.preventDefault();
+            e.stopPropagation();
+            currentSlide = 3;
+            infoPanel.classList.remove('hidden');
+            logToTerminal("[STAGE 2] Displayed Comparison Panel.", "success");
+          } else if (currentSlide === 3) {
+            e.preventDefault();
+            e.stopPropagation();
+            currentSlide = 2;
+            infoPanel.classList.add('hidden');
+            infoPanel.classList.remove('collapsed');
+            const toggleIcon = document.getElementById('toggle-icon');
+            if (toggleIcon) {
+              toggleIcon.innerHTML = `<polyline points="18 15 12 9 6 15"></polyline>`;
+            }
+            logToTerminal("[STAGE 2] Hidden Comparison Panel.", "warning");
+          } else if (currentSlide === 2) {
+            e.preventDefault();
+            e.stopPropagation();
+            triggerZoomOut(); // Đặt currentSlide = 1 trong hàm
+          }
+        }
       }
     }
   }, true);
