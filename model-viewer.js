@@ -47,15 +47,16 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
       const maxDim = Math.max(size.x, size.y, size.z);
       const targetSize = 10;
       const scaleFactor = targetSize / maxDim;
-      laptopModel.scale.setScalar(scaleFactor);
+      // Thiết lập vị trí, xoay, tỉ lệ theo cấu hình tối ưu do người dùng căn chỉnh
+      laptopModel.scale.setScalar(0.6350);
 
-      // Xoay 180 độ quanh Y để mặt trước hướng về camera, và ngửa ra sau một chút quanh X
+      // Xoay mặt trước hướng về camera và nghiêng theo cấu hình căn chỉnh
       laptopModel.rotation.order = 'YXZ';
-      laptopModel.rotation.y = Math.PI;
-      // laptopModel.rotation.x = -0.15; // Ngửa ra sau ~8.5 độ
+      laptopModel.rotation.y = 3.1416;
+      laptopModel.rotation.x = 0.2000;
 
-      // Hạ thấp máy tính xuống sát mặt bàn
-      laptopModel.position.y = -0.85;
+      // Định vị máy tính theo cấu hình căn chỉnh
+      laptopModel.position.set(-0.2500, -0.5300, 0.0500);
 
       onLogCallback(`[LOADER] Auto-scaled model by factor: ${scaleFactor.toFixed(4)}`);
 

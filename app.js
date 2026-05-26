@@ -382,6 +382,83 @@ function setupEvents() {
   // Lắng nghe phím mũi tên và các phím điều khiển từ xa của bút chuyển slide (presenter clicker)
   // Các bút chuyển slide thường giả lập PageDown/PageUp hoặc ArrowDown/ArrowUp hoặc ArrowRight/ArrowLeft
   window.addEventListener('keydown', (e) => {
+    // -------------------------------------------------------------
+    // TÍNH NĂNG ĐIỀU CHỈNH VỊ TRÍ LAPTOP/IMAC (GIAI ĐOẠN 1) THEO YÊU CẦU CỦA USER
+    // -------------------------------------------------------------
+    const laptop = getLaptopModel();
+    if (laptop && currentStage === STAGE_1_IMAC) {
+      const step = e.shiftKey ? 0.01 : 0.05; // Giữ Shift để dịch chuyển tinh tế hơn
+      const rotStep = e.shiftKey ? 0.01 : 0.05;
+      const scaleStep = e.shiftKey ? 0.005 : 0.02;
+      let adjusted = false;
+
+      const keyLower = e.key.toLowerCase();
+      if (keyLower === 'j') {
+        laptop.position.x -= step;
+        adjusted = true;
+      } else if (keyLower === 'l') {
+        laptop.position.x += step;
+        adjusted = true;
+      } else if (keyLower === 'i') {
+        laptop.position.y += step;
+        adjusted = true;
+      } else if (keyLower === 'k') {
+        laptop.position.y -= step;
+        adjusted = true;
+      } else if (keyLower === 'u') {
+        laptop.position.z -= step;
+        adjusted = true;
+      } else if (keyLower === 'o') {
+        laptop.position.z += step;
+        adjusted = true;
+      } else if (keyLower === 'y') {
+        laptop.rotation.y += rotStep;
+        adjusted = true;
+      } else if (keyLower === 'h') {
+        laptop.rotation.y -= rotStep;
+        adjusted = true;
+      } else if (keyLower === 't') {
+        laptop.rotation.x += rotStep;
+        adjusted = true;
+      } else if (keyLower === 'g') {
+        laptop.rotation.x -= rotStep;
+        adjusted = true;
+      } else if (e.key === '[') {
+        laptop.scale.addScalar(-scaleStep);
+        adjusted = true;
+      } else if (e.key === ']') {
+        laptop.scale.addScalar(scaleStep);
+        adjusted = true;
+      }
+
+      if (adjusted) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Định dạng cấu hình tọa độ hiện tại
+        const posText = `Pos: (${laptop.position.x.toFixed(4)}, ${laptop.position.y.toFixed(4)}, ${laptop.position.z.toFixed(4)})`;
+        const rotText = `Rot: (${laptop.rotation.x.toFixed(4)}, ${laptop.rotation.y.toFixed(4)}, ${laptop.rotation.z.toFixed(4)})`;
+        const scaleText = `Scale: ${laptop.scale.x.toFixed(4)}`;
+
+        // In ra console chi tiết dạng code copy-paste
+        console.clear();
+        console.log(`%c[ADJUSTMENT] CẤU HÌNH MÁY TÍNH MỚI:`, "color: #00ffff; font-weight: bold; font-size: 14px;");
+        console.log(`Copy đoạn code bên dưới và gửi lại cho dev:`);
+        console.log(`%c----------------------------------------------------`, "color: #888;");
+        console.log(`laptopModel.position.set(${laptop.position.x.toFixed(4)}, ${laptop.position.y.toFixed(4)}, ${laptop.position.z.toFixed(4)});`);
+        console.log(`laptopModel.rotation.y = ${laptop.rotation.y.toFixed(4)};`);
+        if (Math.abs(laptop.rotation.x) > 0.001) {
+          console.log(`laptopModel.rotation.x = ${laptop.rotation.x.toFixed(4)};`);
+        }
+        console.log(`laptopModel.scale.setScalar(${(laptop.scale.x).toFixed(4)});`);
+        console.log(`%c----------------------------------------------------`, "color: #888;");
+
+        // In ra màn hình log
+        logToTerminal(`📐 Đã chỉnh: ${posText} | ${rotText} | ${scaleText}`, "cyan");
+        return;
+      }
+    }
+
     const nextKeys = ['ArrowRight', 'PageDown', 'ArrowDown'];
     const prevKeys = ['ArrowLeft', 'PageUp', 'ArrowUp'];
 
@@ -547,6 +624,15 @@ window.addEventListener('DOMContentLoaded', () => {
     scene,
     (model) => {
       logToTerminal("[SYSTEM] iMac model loaded.", "success");
+      logToTerminal("🔧 ĐIỀU CHỈNH VỊ TRÍ MÁY TÍNH (Stage 1):", "warning");
+      logToTerminal(" - Phím J / L: Sang trái / Sang phải", "cyan");
+      logToTerminal(" - Phím I / K: Đi lên / Đi xuống", "cyan");
+      logToTerminal(" - Phím U / O: Tiến ra sau / Tiến ra trước", "cyan");
+      logToTerminal(" - Phím Y / H: Xoay quanh Y (+/-)", "cyan");
+      logToTerminal(" - Phím T / G: Xoay quanh X (+/-)", "cyan");
+      logToTerminal(" - Phím [ / ]: Thu nhỏ / Phóng to tỉ lệ", "cyan");
+      logToTerminal(" * Giữ SHIFT để dịch chuyển tinh chỉnh từng chút một.", "success");
+      logToTerminal(" * Vị trí mới sẽ tự động in ra Console trình duyệt để copy!", "success");
 
       // Tải tiếp mô hình Data Warehouse (Giai đoạn 2)
       loadWarehouseModel(
