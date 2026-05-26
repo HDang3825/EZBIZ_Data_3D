@@ -3,11 +3,15 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import {
   loadLaptopModel,
+  loadWarehouseModel,
   updateScreenTexture,
   handleMouseMove,
   handleMouseClick,
   getCameraZoomTargets,
-  getOverviewTargets
+  getOverviewTargets,
+  getLaptopModel,
+  getWarehouseModel,
+  getScreenCenterWorld
 } from './model-viewer.js';
 
 // Các trạng thái của Camera
@@ -15,8 +19,19 @@ const STATE_OVERVIEW = 0;
 const STATE_ZOOMING_IN = 1;
 const STATE_ZOOMED_IN = 2;
 const STATE_ZOOMING_OUT = 3;
+const STATE_TRANSITIONING = 4;   // Bay qua màn hình để chuyển sang giai đoạn 2
+
+// Các giai đoạn (Stages) của hệ thống
+const STAGE_1_IMAC = 1;
+const STAGE_2_WAREHOUSE = 2;
 
 let systemState = STATE_OVERVIEW;
+let currentStage = STAGE_1_IMAC;
+
+// Biến hỗ trợ phân biệt Click và Drag (để xoay không bị thoát cảnh)
+let clickStartX = 0;
+let clickStartY = 0;
+let isDragging = false;
 
 // Các biến cốt lõi của Three.js
 let scene, camera, renderer, controls;
@@ -128,7 +143,6 @@ function initThree() {
     }
   });
 
-
   const envTexture = pmremGenerator.fromScene(roomEnv, 0.04).texture;
   scene.environment = envTexture;
   pmremGenerator.dispose();
@@ -186,12 +200,37 @@ function triggerZoomIn() {
 function triggerZoomOut() {
   if (systemState === STATE_OVERVIEW || systemState === STATE_ZOOMING_OUT) return;
 
+  if (currentStage === STAGE_2_WAREHOUSE) {
+    // 1. Chuyển lại mô hình sang iMac
+    const laptop = getLaptopModel();
+    const warehouse = getWarehouseModel();
+    if (laptop) laptop.visible = true;
+    if (warehouse) warehouse.visible = false;
+
+    // 2. Định vị camera ngay sát màn hình iMac để chuẩn bị phóng to lùi ra ngoài
+    const zoomTargets = getCameraZoomTargets();
+    camera.position.copy(zoomTargets.position);
+    controls.target.copy(zoomTargets.target);
+
+    // Khôi phục lại cấu hình góc xoay và giới hạn OrbitControls cho iMac
+    controls.minDistance = 4;
+    controls.maxDistance = 25;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+    currentStage = STAGE_1_IMAC;
+
+    // Đổi tiêu đề UI về mặc định
+    const nodeName = document.getElementById('node-name');
+    if (nodeName) nodeName.textContent = "Overview Laptop";
+  }
+
   // Lấy tọa độ góc nhìn tổng quan
   const targets = getOverviewTargets();
 
   systemState = STATE_ZOOMING_OUT;
 
-  document.getElementById('btn-back').classList.add('hidden');
+  const btnBackEl = document.getElementById('btn-back');
+  if (btnBackEl) btnBackEl.classList.add('hidden');
   logToTerminal("Returning to overall view...", "warning");
 
   // Khôi phục lại độ hiển thị của các panel UI
@@ -201,8 +240,37 @@ function triggerZoomOut() {
   if (panelRight) panelRight.style.opacity = '1';
 }
 
+// Bắt đầu quá trình chuyển cảnh từ iMac sang Data Warehouse (Giai đoạn 2)
+function triggerStage2Transition() {
+  if (currentStage !== STAGE_1_IMAC) return;
+  
+  // Lấy tọa độ zoom cận cảnh màn hình để làm mục tiêu bay trung gian
+  const zoomTargets = getCameraZoomTargets();
+  targetCamPos.copy(zoomTargets.position);
+  targetLookAt.copy(zoomTargets.target);
+
+  currentStage = STAGE_2_WAREHOUSE;
+  systemState = STATE_TRANSITIONING;
+  controls.enabled = false; // Khóa OrbitControls trong lúc camera di chuyển tự động
+  logToTerminal("[STAGE 2] Initiating server portal fly-in transition...", "cyan");
+
+  // Làm mờ các bảng UI để tập trung vào hành lang 3D
+  const panelLeft = document.querySelector('.panel-left');
+  const panelRight = document.querySelector('.panel-right');
+  if (panelLeft) panelLeft.style.opacity = '0';
+  if (panelRight) panelRight.style.opacity = '0';
+}
+
 // Đăng ký các sự kiện tương tác của UI & Cửa sổ trình duyệt
 function setupEvents() {
+  // Tự động focus vào cửa sổ trang web khi người dùng rê chuột vào vùng canvas 3D
+  const canvas = document.getElementById('webgl-canvas');
+  if (canvas) {
+    canvas.addEventListener('mouseenter', () => {
+      window.focus();
+    });
+  }
+
   window.addEventListener('resize', () => {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -221,16 +289,43 @@ function setupEvents() {
     }
   });
 
+  // Ghi nhận tọa độ khi bắt đầu nhấn chuột/chạm để phân biệt Click và Drag
+  window.addEventListener('pointerdown', (e) => {
+    clickStartX = e.clientX;
+    clickStartY = e.clientY;
+    isDragging = false;
+  });
+
+  // Kiểm tra khoảng cách kéo khi nhả chuột/chạm
+  window.addEventListener('pointerup', (e) => {
+    const dx = e.clientX - clickStartX;
+    const dy = e.clientY - clickStartY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    // Nếu khoảng cách kéo lớn hơn 5px, coi như là hành động xoay (drag)
+    if (dist > 5) {
+      isDragging = true;
+    }
+  });
+
   // Sự kiện click chuột để Raycast click
   window.addEventListener('click', (e) => {
+    // Nếu là thao tác kéo xoay camera, bỏ qua sự kiện click để tránh thoát cảnh
+    if (isDragging) {
+      isDragging = false;
+      return;
+    }
+
     // Không kích hoạt zoom/thoát zoom khi người dùng đang click vào các phần tử UI nút bấm
     if (e.target.closest('.dashboard-ui') || e.target.closest('button')) return;
 
     if (systemState === STATE_OVERVIEW) {
       handleMouseClick(e, camera, window.innerWidth, window.innerHeight, triggerZoomIn);
     } else if (systemState === STATE_ZOOMED_IN) {
-      // Zoom out khi click bất kỳ vị trí nào ngoài màn hình khi đang ở trạng thái zoom cận cảnh
-      triggerZoomOut();
+      // Chỉ zoom out khi click ngoài màn hình ở Giai đoạn 1 (iMac)
+      // Ở Giai đoạn 2 (Warehouse), nhấp chuột trên canvas không tự động thoát về iMac
+      if (currentStage === STAGE_1_IMAC) {
+        triggerZoomOut();
+      }
     }
   });
 
@@ -241,7 +336,9 @@ function setupEvents() {
   const btnReset = document.getElementById('btn-reset-view');
   if (btnReset) {
     btnReset.addEventListener('click', () => {
-      if (systemState === STATE_OVERVIEW) {
+      if (currentStage === STAGE_2_WAREHOUSE) {
+        triggerZoomOut();
+      } else if (systemState === STATE_OVERVIEW) {
         controls.reset();
         logToTerminal("Camera position reset to default overview.");
       } else {
@@ -252,6 +349,27 @@ function setupEvents() {
 
   const btnBack = document.getElementById('btn-back');
   if (btnBack) btnBack.addEventListener('click', triggerZoomOut);
+
+  // Lắng nghe phím mũi tên và các phím điều khiển từ xa của bút chuyển slide (presenter clicker)
+  // Các bút chuyển slide thường giả lập PageDown/PageUp hoặc ArrowDown/ArrowUp hoặc ArrowRight/ArrowLeft
+  window.addEventListener('keydown', (e) => {
+    const nextKeys = ['ArrowRight', 'PageDown', 'ArrowDown'];
+    const prevKeys = ['ArrowLeft', 'PageUp', 'ArrowUp'];
+
+    if (nextKeys.includes(e.key)) {
+      if (currentStage === STAGE_1_IMAC && (systemState === STATE_OVERVIEW || systemState === STATE_ZOOMED_IN)) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerStage2Transition();
+      }
+    } else if (prevKeys.includes(e.key)) {
+      if (currentStage === STAGE_2_WAREHOUSE) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerZoomOut();
+      }
+    }
+  }, true);
 }
 
 // Vòng lặp Render chính (Animation loop)
@@ -277,14 +395,10 @@ function animate() {
       camera.position.copy(targetCamPos);
       controls.target.copy(targetLookAt);
       systemState = STATE_ZOOMED_IN;
-      document.getElementById('btn-back').classList.remove('hidden');
+      const btnBackEl = document.getElementById('btn-back');
+      if (btnBackEl) btnBackEl.classList.remove('hidden');
       logToTerminal("[PORTAL] Connected to virtual screen workspace.", "success");
 
-      // Hiệu ứng zoom: Ẩn các bảng điều khiển bên ngoài để hiển thị rõ nội dung màn hình
-      // const panelLeft = document.querySelector('.panel-left');
-      // const panelRight = document.querySelector('.panel-right');
-      // if (panelLeft) panelLeft.style.opacity = '0.05';
-      // if (panelRight) panelRight.style.opacity = '0.05';
       const nodeName = document.getElementById('node-name');
       if (nodeName) nodeName.textContent = "Sub-system Screen Portal";
     }
@@ -301,9 +415,50 @@ function animate() {
       const nodeName = document.getElementById('node-name');
       if (nodeName) nodeName.textContent = "Overview Laptop";
     }
+  } else if (systemState === STATE_TRANSITIONING) {
+    const speed = 0.08;
+    const screenCenter = getScreenCenterWorld(); // Lấy tâm màn hình iMac thế giới
+
+    // Bay thẳng camera vào tâm màn hình iMac
+    camera.position.lerp(screenCenter, speed);
+    controls.target.lerp(screenCenter, speed);
+
+    // Khi camera đã tiến rất sát màn hình (đâm xuyên qua màn hình)
+    if (camera.position.distanceTo(screenCenter) < 0.15) {
+      // 1. Ẩn iMac, hiển thị Data Warehouse
+      const laptop = getLaptopModel();
+      const warehouse = getWarehouseModel();
+      if (laptop) laptop.visible = false;
+      if (warehouse) warehouse.visible = true;
+
+      // 2. Định vị camera trực tiếp tại vị trí xem trong Data Warehouse
+      // Đặt camera ở vị trí lùi lại hơn (ví dụ Z = 3.5 thay vì 1.5) để góc nhìn rộng hơn và không bị quá sâu.
+      // Đặt target tại (0, -0.15, 0) để tạo khoảng cách 3.5 đơn vị, nhỏ hơn maxDistance (8).
+      // Điều này ngăn chặn hoàn toàn việc OrbitControls kéo camera zoom sâu thêm 1 lần nữa!
+      camera.position.set(0, -0.15, 3.5);
+      controls.target.set(0, -0.15, 0); 
+      controls.update(); // Đồng bộ hóa OrbitControls ngay lập tức!
+
+      // 3. Hoàn thành chuyển cảnh ngay lập tức và mở khóa camera
+      systemState = STATE_ZOOMED_IN; 
+      controls.enabled = true; // Mở lại OrbitControls để người dùng tự do tham quan
+      
+      // Giới hạn OrbitControls trong Warehouse để người dùng không bay ra khỏi hộp
+      controls.minDistance = 1;
+      controls.maxDistance = 8;
+      controls.maxPolarAngle = Math.PI - 0.05; // Mở rộng góc xoay dọc để không bị giật camera lên trên
+
+      // Đổi tiêu đề UI
+      const nodeName = document.getElementById('node-name');
+      if (nodeName) nodeName.textContent = "Data Warehouse Core";
+      
+      logToTerminal("[STAGE 2] Entered Virtual Data Warehouse successfully.", "success");
+    }
   }
 
-  controls.update();
+  if (controls.enabled) {
+    controls.update();
+  }
   renderer.render(scene, camera);
 }
 
@@ -313,16 +468,33 @@ window.addEventListener('DOMContentLoaded', () => {
   initThree();
   setupEvents();
 
-  // Tải mô hình laptop 3D
+  // Tải mô hình iMac 3D trước
   loadLaptopModel(
     scene,
     (model) => {
-      logToTerminal("[SYSTEM] Laptop model loaded and configured.", "success");
-      // Bắt đầu chạy vòng lặp render
-      animate();
+      logToTerminal("[SYSTEM] iMac model loaded.", "success");
+      
+      // Tải tiếp mô hình Data Warehouse (Giai đoạn 2)
+      loadWarehouseModel(
+        scene,
+        (whModel) => {
+          logToTerminal("[SYSTEM] Data Warehouse model loaded.", "success");
+          // Bắt đầu chạy vòng lặp render sau khi tải xong cả 2
+          animate();
+        },
+        (logMsg) => {
+          if (logMsg.includes('[ERROR]')) {
+            logToTerminal(logMsg, 'danger');
+          } else if (logMsg.includes('[WARNING]')) {
+            logToTerminal(logMsg, 'warning');
+          } else {
+            logToTerminal(logMsg);
+          }
+        }
+      );
     },
     (logMsg) => {
-      // Đẩy logs tải mô hình trực tiếp vào cửa sổ terminal!
+      // Logs tải laptop
       if (logMsg.includes('[ERROR]')) {
         logToTerminal(logMsg, 'danger');
       } else if (logMsg.includes('[WARNING]')) {

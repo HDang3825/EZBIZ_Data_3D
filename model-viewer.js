@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Các biến trạng thái
 let laptopModel = null;
+let warehouseModel = null;
 let screenMesh = null;
 
 // Các biến phục vụ Raycasting (bắt tọa độ chuột)
@@ -25,7 +26,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
   const loader = new GLTFLoader();
 
   loader.load(
-    'Imac.glb',
+    'Imacc.glb',
     (gltf) => {
       const modelGroup = gltf.scene;
       laptopModel = new THREE.Group();
@@ -54,7 +55,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
       // laptopModel.rotation.x = -0.15; // Ngửa ra sau ~8.5 độ
 
       // Hạ thấp máy tính xuống sát mặt bàn
-      laptopModel.position.y = -1.35;
+      laptopModel.position.y = -0.85;
 
       onLogCallback(`[LOADER] Auto-scaled model by factor: ${scaleFactor.toFixed(4)}`);
 
@@ -265,4 +266,76 @@ export function getOverviewTargets() {
     position: new THREE.Vector3(0, 2.5, 13),
     target: new THREE.Vector3(0, 0, 0)
   };
+}
+
+// Tải mô hình Data Warehouse (Giai đoạn 2)
+export function loadWarehouseModel(scene, onLoadCallback, onLogCallback) {
+  onLogCallback("[LOADER] Fetching data warehouse model...");
+
+  const loader = new GLTFLoader();
+
+  loader.load(
+    'datawarehouse (1).glb',
+    (gltf) => {
+      const modelGroup = gltf.scene;
+      warehouseModel = new THREE.Group();
+      warehouseModel.add(modelGroup);
+      onLogCallback("[LOADER] Warehouse model loaded successfully. Analysing structure...");
+
+      // Tính toán Bounding Box để căn giữa và tự động co giãn mô hình
+      const box = new THREE.Box3().setFromObject(modelGroup);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+
+      onLogCallback(`[LOADER] Warehouse Dimensions: W:${size.x.toFixed(2)}, H:${size.y.toFixed(2)}, D:${size.z.toFixed(2)}`);
+
+      // Căn giữa modelGroup bên trong container warehouseModel
+      modelGroup.position.copy(center).multiplyScalar(-1);
+
+      // Co giãn mô hình về kích thước chuẩn (độ rộng khoảng 10 đơn vị)
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const targetSize = 10;
+      const scaleFactor = targetSize / maxDim;
+      warehouseModel.scale.setScalar(scaleFactor);
+
+      // Xoay 180 độ quanh Y để đổi hướng (xoay đầu) của hành lang
+      warehouseModel.rotation.y = Math.PI;
+
+      // Thiết lập bóng đổ cho các mesh trong warehouse
+      warehouseModel.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+
+      // Mặc định ẩn mô hình warehouse khi khởi tạo
+      warehouseModel.visible = false;
+      scene.add(warehouseModel);
+
+      onLogCallback("[SYSTEM] Data Warehouse model configured.");
+      onLoadCallback(warehouseModel);
+    },
+    (xhr) => {
+      if (xhr.total > 0) {
+        const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+        onLogCallback(`[LOADER] Warehouse Progress: ${percent}%`);
+      }
+    },
+    (err) => {
+      onLogCallback(`[ERROR] Failed to load warehouse model: ${err.message}`);
+    }
+  );
+}
+
+export function getLaptopModel() {
+  return laptopModel;
+}
+
+export function getWarehouseModel() {
+  return warehouseModel;
+}
+
+export function getScreenCenterWorld() {
+  return screenCenterWorld;
 }
