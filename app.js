@@ -264,9 +264,9 @@ function triggerZoomOut() {
 // Bắt đầu quá trình chuyển cảnh từ iMac sang Data Warehouse (Giai đoạn 2)
 function triggerStage2Transition() {
   if (currentStage !== STAGE_1_IMAC) return;
-  
+
   currentSlide = 2; // Đồng bộ slide sang trang 2 (Warehouse ẩn bảng)
-  
+
   // Lấy tọa độ zoom cận cảnh màn hình để làm mục tiêu bay trung gian
   const zoomTargets = getCameraZoomTargets();
   targetCamPos.copy(zoomTargets.position);
@@ -510,13 +510,13 @@ function animate() {
       // Đặt target tại (0, -0.15, 0) để tạo khoảng cách 3.5 đơn vị, nhỏ hơn maxDistance (8).
       // Điều này ngăn chặn hoàn toàn việc OrbitControls kéo camera zoom sâu thêm 1 lần nữa!
       camera.position.set(0, -0.15, 3.5);
-      controls.target.set(0, -0.15, 0); 
+      controls.target.set(0, -0.15, 0);
       controls.update(); // Đồng bộ hóa OrbitControls ngay lập tức!
 
       // 3. Hoàn thành chuyển cảnh ngay lập tức và mở khóa camera
-      systemState = STATE_ZOOMED_IN; 
+      systemState = STATE_ZOOMED_IN;
       controls.enabled = true; // Mở lại OrbitControls để người dùng tự do tham quan
-      
+
       // Giới hạn OrbitControls trong Warehouse để người dùng không bay ra khỏi hộp
       controls.minDistance = 1;
       controls.maxDistance = 8;
@@ -525,7 +525,7 @@ function animate() {
       // Đổi tiêu đề UI
       const nodeName = document.getElementById('node-name');
       if (nodeName) nodeName.textContent = "Data Warehouse Core";
-      
+
       logToTerminal("[STAGE 2] Entered Virtual Data Warehouse successfully.", "success");
     }
   }
@@ -547,7 +547,7 @@ window.addEventListener('DOMContentLoaded', () => {
     scene,
     (model) => {
       logToTerminal("[SYSTEM] iMac model loaded.", "success");
-      
+
       // Tải tiếp mô hình Data Warehouse (Giai đoạn 2)
       loadWarehouseModel(
         scene,

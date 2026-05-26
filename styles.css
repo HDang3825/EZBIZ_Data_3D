@@ -508,7 +508,8 @@ h2 {
   transform: translate(-50%, -50%) scale(1);
   width: 95%;
   height: 75%;
-  max-width: 1050px; /* Tăng nhẹ max-width để tạo không gian rộng rãi hơn */
+  max-width: 1050px;
+  /* Tăng nhẹ max-width để tạo không gian rộng rãi hơn */
   background: rgba(8, 15, 30, 0.78);
   /* Dark space glass */
   backdrop-filter: blur(20px);
@@ -535,7 +536,8 @@ h2 {
   left: 50%;
   transform: translate(-50%, 0);
   width: 320px;
-  height: auto !important; /* Đè chiều cao 75% để thu nhỏ */
+  height: auto !important;
+  /* Đè chiều cao 75% để thu nhỏ */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 189, 248, 0.1);
 }
 
@@ -545,7 +547,8 @@ h2 {
   padding-bottom: 0;
   opacity: 0;
   pointer-events: none;
-  overflow: hidden; /* Ngăn nội dung tràn ra ngoài */
+  overflow: hidden;
+  /* Ngăn nội dung tràn ra ngoài */
 }
 
 .comparison-panel.collapsed .panel-header-bar {
@@ -605,7 +608,8 @@ h2 {
 
 .panel-content-scroll {
   padding: clamp(20px, 3vh, 32px) clamp(24px, 4vw, 40px);
-  flex-grow: 1; /* Căng tràn chiều cao còn lại của panel */
+  flex-grow: 1;
+  /* Căng tràn chiều cao còn lại của panel */
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -615,10 +619,12 @@ h2 {
 
 .panel-main-title {
   font-family: var(--font-tech);
-  font-size: clamp(1.2rem, 3.2vh, 1.7rem); /* Responsive font size */
+  font-size: clamp(1.2rem, 3.2vh, 1.7rem);
+  /* Responsive font size */
   font-weight: 800;
   line-height: 1.4;
-  margin-bottom: clamp(20px, 3.5vh, 32px); /* Responsive margin */
+  margin-bottom: clamp(20px, 3.5vh, 32px);
+  /* Responsive margin */
   text-align: center;
   letter-spacing: 1.5px;
   border-left: none !important;
@@ -635,18 +641,23 @@ h2 {
 .comparison-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(2, minmax(0, 1fr)); /* Chia đôi chiều cao grid cho 2 hàng */
-  gap: clamp(15px, 2.5vh, 24px); /* Khoảng cách co giãn theo chiều cao màn hình */
-  flex-grow: 1; /* Điền đầy không gian còn lại */
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  /* Chia đôi chiều cao grid cho 2 hàng */
+  gap: clamp(15px, 2.5vh, 24px);
+  /* Khoảng cách co giãn theo chiều cao màn hình */
+  flex-grow: 1;
+  /* Điền đầy không gian còn lại */
 }
 
 @media (max-width: 768px) {
   .comparison-panel {
     height: 80%;
   }
+
   .comparison-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto; /* Tự động xếp tầng dọc trên màn hình nhỏ */
+    grid-template-rows: auto;
+    /* Tự động xếp tầng dọc trên màn hình nhỏ */
     gap: 16px;
   }
 }
@@ -654,12 +665,14 @@ h2 {
 .comparison-item {
   display: flex;
   gap: clamp(12px, 2vw, 18px);
-  padding: clamp(16px, 2.5vh, 24px); /* Padding co giãn mượt mà theo độ cao viewport */
+  padding: clamp(16px, 2.5vh, 24px);
+  /* Padding co giãn mượt mà theo độ cao viewport */
   background: rgba(15, 23, 42, 0.4);
   border: 1px solid rgba(56, 189, 248, 0.12);
   border-radius: 14px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  align-items: flex-start; /* Căn thẳng hàng trên (icon ngang dòng đầu tiên của h4) */
+  align-items: flex-start;
+  /* Căn thẳng hàng trên (icon ngang dòng đầu tiên của h4) */
 }
 
 .comparison-item:hover {
@@ -702,7 +715,8 @@ h2 {
 
 .item-text h4 {
   font-family: var(--font-ui);
-  font-size: clamp(0.95rem, 2.2vh, 1.12rem); /* Chữ tiêu đề thích ứng */
+  font-size: clamp(0.95rem, 2.2vh, 1.12rem);
+  /* Chữ tiêu đề thích ứng */
   font-weight: 700;
   color: #ffffff;
   margin-bottom: clamp(4px, 1vh, 8px);
@@ -711,9 +725,11 @@ h2 {
 
 .item-text p {
   font-family: var(--font-ui);
-  font-size: clamp(0.78rem, 1.7vh, 0.9rem); /* Chữ mô tả thích ứng */
+  font-size: clamp(0.78rem, 1.7vh, 0.9rem);
+  /* Chữ mô tả thích ứng */
   line-height: 1.55;
-  color: #cbd5e1; /* Màu chữ sáng hơn để tăng độ tương phản đọc */
+  color: #cbd5e1;
+  /* Màu chữ sáng hơn để tăng độ tương phản đọc */
 }
 
 .btn-icon {
