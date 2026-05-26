@@ -26,7 +26,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
   const loader = new GLTFLoader();
 
   loader.load(
-    'Imacc.glb',
+    'Imac_keke.glb',
     (gltf) => {
       const modelGroup = gltf.scene;
       laptopModel = new THREE.Group();
@@ -88,6 +88,15 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
           if (isScreen && !screenMesh) {
             screenMesh = child;
             onLogCallback(`[SYSTEM] Matched screen mesh: "${child.name}"`);
+            
+            // Khử hoàn toàn phản xạ gây lóa/cháy sáng trên màn hình (biến thành màn hình nhám chống chói)
+            if (child.material) {
+              child.material.roughness = 1.0;
+              child.material.metalness = 0.0;
+              if (child.material.map) {
+                child.material.map.anisotropy = 16; // Tăng chất lượng hiển thị sắc nét cho texture màn hình
+              }
+            }
           }
         }
       });

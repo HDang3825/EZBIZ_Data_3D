@@ -134,11 +134,10 @@ function initThree() {
   controls.maxDistance = 25;
   controls.target.copy(overviewLookAt);
 
-  // Ánh sáng chính di chuyển theo camera (Headlight) giúp các góc nhìn luôn sáng rõ giống sandbox
-  const cameraLight = new THREE.DirectionalLight('#ffffff', 1.8);
-  cameraLight.position.set(0.5, 0.5, 1.0); // Nghiêng nhẹ góc chiếu so với camera
-  camera.add(cameraLight);
-  scene.add(camera); // Phải thêm camera vào scene để cameraLight hoạt động
+  // Ánh sáng phụ góc sườn trái cố định trong Scene để tránh cháy sáng khi Camera nhìn trực diện
+  const sideLightLeft = new THREE.DirectionalLight('#ffffff', 1.0);
+  sideLightLeft.position.set(-6, 5, 8); // Chiếu từ phía trước - trái - trên
+  scene.add(sideLightLeft);
 
   // Tạo môi trường phản xạ (Environment Map) giả lập studio để chất liệu kim loại phản chiếu ánh sáng tự nhiên
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -153,9 +152,9 @@ function initThree() {
   const ambientLight = new THREE.AmbientLight('#ffffff', 0.3);
   scene.add(ambientLight);
 
-  // Ánh sáng cố định chiếu bóng đổ (độ sáng 0.7, tổng cường độ chiếu trực tiếp = 1.8 + 0.7 = 2.5 khớp với sandbox)
+  // Ánh sáng cố định chiếu bóng đổ (chuyển sang góc sườn (6, 3, 5) để phản xạ hắt chéo, không dội trực diện vào Camera)
   const dirLight1 = new THREE.DirectionalLight('#ffffff', 0.7);
-  dirLight1.position.set(2, 1.5, 8);
+  dirLight1.position.set(6, 3, 5);
   dirLight1.castShadow = true;
   dirLight1.shadow.mapSize.width = 2048;
   dirLight1.shadow.mapSize.height = 2048;
@@ -396,17 +395,17 @@ function setupEvents() {
 
         if (items[targetIndex]) {
           const isAlreadyActive = items[targetIndex].classList.contains('active');
-          
+
           // Xóa class active ở tất cả các mục
           items.forEach(item => item.classList.remove('active'));
 
           if (!isAlreadyActive) {
             // Thêm active vào mục được chọn
             items[targetIndex].classList.add('active');
-            
+
             // Cuộn mượt mà đến mục đó trong bảng nếu cần
             items[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
+
             const title = items[targetIndex].querySelector('h4').textContent;
             logToTerminal(`🔍 Đang thuyết trình mục ${e.key}: ${title}`, "success");
           } else {
