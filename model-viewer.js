@@ -26,7 +26,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
   const loader = new GLTFLoader();
 
   loader.load(
-    'Imac_keke.glb',
+    'Imac-hi.glb',
     (gltf) => {
       const modelGroup = gltf.scene;
       laptopModel = new THREE.Group();
@@ -88,7 +88,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
           if (isScreen && !screenMesh) {
             screenMesh = child;
             onLogCallback(`[SYSTEM] Matched screen mesh: "${child.name}"`);
-            
+
             // Khử hoàn toàn phản xạ gây lóa/cháy sáng trên màn hình (biến thành màn hình nhám chống chói)
             if (child.material) {
               child.material.roughness = 1.0;

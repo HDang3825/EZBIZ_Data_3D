@@ -358,6 +358,8 @@ function setupEvents() {
   const btnBack = document.getElementById('btn-back');
   if (btnBack) btnBack.addEventListener('click', triggerZoomOut);
 
+
+
   // Đăng ký sự kiện Thu nhỏ / Mở rộng bảng so sánh ở Giai đoạn 2
   const btnTogglePanel = document.getElementById('btn-toggle-panel');
   const infoPanel = document.getElementById('dw-info-panel');
