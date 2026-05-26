@@ -139,14 +139,18 @@ function initThree() {
   sideLightLeft.position.set(-6, 5, 8); // Chiếu từ phía trước - trái - trên
   scene.add(sideLightLeft);
 
-  // Tạo môi trường phản xạ (Environment Map) giả lập studio để chất liệu kim loại phản chiếu ánh sáng tự nhiên
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  const roomEnv = new RoomEnvironment(renderer);
-  // Loại bỏ nhân vật làm dịu màu (multiplyScalar 0.25) để phản xạ kim loại đạt độ trắng sáng như môi trường "Neutral" mặc định
-  const envTexture = pmremGenerator.fromScene(roomEnv, 0.04).texture;
+  // Tạo môi trường phản xạ (Environment Map) từ "ice_river" của Online3DViewer để mô phỏng ánh sáng phản chiếu chân thực nhất
+  const cubeLoader = new THREE.CubeTextureLoader();
+  cubeLoader.setCrossOrigin('anonymous');
+  const envTexture = cubeLoader.load([
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/posx.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/negx.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/posy.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/negy.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/posz.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/negz.jpg'
+  ]);
   scene.environment = envTexture;
-  pmremGenerator.dispose();
-  roomEnv.dispose();
 
   // Ánh sáng môi trường dịu (khớp với ambientIntensity = 0.3 của sandbox)
   const ambientLight = new THREE.AmbientLight('#ffffff', 0.3);
