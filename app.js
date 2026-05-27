@@ -24,6 +24,7 @@ const STATE_TRANSITIONING = 4;   // Bay qua màn hình để chuyển sang giai 
 // Các giai đoạn (Stages) của hệ thống
 const STAGE_1_IMAC = 1;
 const STAGE_2_WAREHOUSE = 2;
+const STAGE_3_SPACE = 3;
 
 let systemState = STATE_OVERVIEW;
 let currentStage = STAGE_1_IMAC;
@@ -293,6 +294,138 @@ function triggerStage2Transition() {
   }
 }
 
+// Bắt đầu quá trình chuyển cảnh từ Data Warehouse sang Không gian Cosmic (Giai đoạn 3)
+function triggerStage3Transition() {
+  if (currentStage !== STAGE_2_WAREHOUSE) return;
+
+  logToTerminal("[STAGE 3] Entering cosmic storage dimension...", "cyan");
+
+  currentStage = STAGE_3_SPACE;
+  currentSlide = 8;
+  systemState = STATE_ZOOMED_IN;
+  controls.enabled = false; // Khóa OrbitControls tạm thời
+
+  // Khử hình nền tĩnh để lộ video
+  document.body.classList.add('stage3-active');
+
+  // 1. Kích hoạt phát video nền autoplay + loop và làm mờ các thành phần 3D cũ
+  const bgVideo = document.getElementById('bg-video-stage3');
+  if (bgVideo) {
+    bgVideo.classList.add('active');
+    bgVideo.currentTime = 0;
+    bgVideo.play().catch(err => {
+      console.warn("Autoplay blocked or failed:", err);
+    });
+  }
+
+  // 2. Ẩn bảng thông tin Data Warehouse
+  const infoPanel = document.getElementById('dw-info-panel');
+  if (infoPanel) {
+    infoPanel.classList.add('hidden');
+  }
+
+  // 3. Ẩn mô hình Data Warehouse và iMac để xem trọn vẹn video background Cosmic
+  const warehouse = getWarehouseModel();
+  if (warehouse) {
+    warehouse.visible = false;
+  }
+  const laptop = getLaptopModel();
+  if (laptop) {
+    laptop.visible = false;
+  }
+
+  // 3.1 Ẩn WebGL canvas và hai bảng điều khiển hai bên sườn (để lộ hoàn toàn video nền)
+  const canvas = document.getElementById('webgl-canvas');
+  if (canvas) {
+    canvas.style.transition = 'opacity 0.6s ease';
+    canvas.style.opacity = '0';
+    canvas.style.pointerEvents = 'none';
+  }
+  const panelLeft = document.querySelector('.panel-left');
+  const panelRight = document.querySelector('.panel-right');
+  if (panelLeft) {
+    panelLeft.style.transition = 'opacity 0.6s ease';
+    panelLeft.style.opacity = '0';
+    panelLeft.style.pointerEvents = 'none';
+  }
+  if (panelRight) {
+    panelRight.style.transition = 'opacity 0.6s ease';
+    panelRight.style.opacity = '0';
+    panelRight.style.pointerEvents = 'none';
+  }
+
+  // 4. Định vị camera và đổi tên Node
+  camera.position.set(0, 0, 15);
+  controls.target.set(0, 0, 0);
+  controls.update();
+
+  const nodeName = document.getElementById('node-name');
+  if (nodeName) {
+    nodeName.textContent = "Cosmic Data Space";
+  }
+
+  logToTerminal("[STAGE 3] Cosmic Space Background activated.", "success");
+}
+
+// Quay trở lại Giai đoạn 2 từ Giai đoạn 3
+function triggerStage2From3() {
+  if (currentStage !== STAGE_3_SPACE) return;
+
+  currentStage = STAGE_2_WAREHOUSE;
+  currentSlide = 7;
+  systemState = STATE_ZOOMED_IN;
+
+  // Khôi phục lại hình nền tĩnh của Stage 1 & 2
+  document.body.classList.remove('stage3-active');
+
+  // 1. Tắt/Ẩn video nền
+  const bgVideo = document.getElementById('bg-video-stage3');
+  if (bgVideo) {
+    bgVideo.classList.remove('active');
+    bgVideo.pause();
+  }
+
+  // 1.1 Khôi phục hiển thị WebGL canvas và hai bảng điều khiển hai bên sườn
+  const canvas = document.getElementById('webgl-canvas');
+  if (canvas) {
+    canvas.style.opacity = '1';
+    canvas.style.pointerEvents = 'auto';
+  }
+  const panelLeft = document.querySelector('.panel-left');
+  const panelRight = document.querySelector('.panel-right');
+  if (panelLeft) {
+    panelLeft.style.opacity = '1';
+    panelLeft.style.pointerEvents = 'auto';
+  }
+  if (panelRight) {
+    panelRight.style.opacity = '1';
+    panelRight.style.pointerEvents = 'auto';
+  }
+
+  // 2. Hiển thị lại mô hình Data Warehouse
+  const warehouse = getWarehouseModel();
+  if (warehouse) {
+    warehouse.visible = true;
+  }
+
+  // 3. Khôi phục camera và góc nhìn của Warehouse
+  camera.position.set(0, -0.15, 3.5);
+  controls.target.set(0, -0.15, 0);
+  controls.update();
+
+  controls.enabled = true;
+  controls.minDistance = 1;
+  controls.maxDistance = 8;
+  controls.maxPolarAngle = Math.PI - 0.05;
+
+  const nodeName = document.getElementById('node-name');
+  if (nodeName) {
+    nodeName.textContent = "Data Warehouse Core";
+  }
+
+  logToTerminal("[STAGE 2] Returned to Data Warehouse Core.", "warning");
+}
+
 // Đăng ký các sự kiện tương tác của UI & Cửa sổ trình duyệt
 function setupEvents() {
   // Tự động focus vào cửa sổ trang web khi người dùng rê chuột vào vùng canvas 3D
@@ -545,12 +678,20 @@ function setupEvents() {
             if (toggleIcon) {
               toggleIcon.innerHTML = `<polyline points="18 15 12 9 6 15"></polyline>`;
             }
-            logToTerminal("[STAGE 2] Đóng bảng so sánh.", "warning");
+            logToTerminal("[STAGE 2] Đóng bảng so sánh. Sẵn sàng vào Giai đoạn 3.", "warning");
+          } else if (currentSlide === 7) {
+            e.preventDefault();
+            e.stopPropagation();
+            triggerStage3Transition();
           }
         }
       }
     } else if (prevKeys.includes(e.key)) {
-      if (currentStage === STAGE_2_WAREHOUSE) {
+      if (currentStage === STAGE_3_SPACE) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerStage2From3();
+      } else if (currentStage === STAGE_2_WAREHOUSE) {
         const infoPanel = document.getElementById('dw-info-panel');
         const items = document.querySelectorAll('.comparison-item');
         if (infoPanel) {

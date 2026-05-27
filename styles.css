@@ -37,13 +37,18 @@ html {
   color: var(--text-main);
 }
 
+body.stage3-active {
+  background-image: none !important;
+  background-color: #000000 !important;
+}
+
 #webgl-canvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 2;
 }
 
 /* Các thẻ phong cách Kính mờ (Glassmorphism) */
@@ -759,4 +764,45 @@ h2 {
   visibility: hidden !important;
   pointer-events: none !important;
   transform: translate(-50%, -46%) scale(0.93) !important;
+}
+
+/* ==========================================
+   VIDEO NỀN CHO GIAI ĐOẠN 3 (STAGE 3)
+   ========================================== */
+#bg-video-stage3 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1; /* Nằm trước hình nền body nhưng nằm dưới canvas */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#bg-video-stage3.active {
+  opacity: 1;
+}
+
+/* ==========================================
+   CINEMATIC TRANSITION OVERLAY
+   ========================================== */
+#transition-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000000;
+  z-index: 99999; /* Đảm bảo nằm trên mọi thành phần khác kể cả canvas và UI */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#transition-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
 }
