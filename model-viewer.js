@@ -26,7 +26,7 @@ export function loadLaptopModel(scene, onLoadCallback, onLogCallback) {
   const loader = new GLTFLoader();
 
   loader.load(
-    'Imac-hi.glb',
+    'Imac-hhh.glb',
     (gltf) => {
       const modelGroup = gltf.scene;
       laptopModel = new THREE.Group();
@@ -285,7 +285,7 @@ export function loadWarehouseModel(scene, onLoadCallback, onLogCallback) {
   const loader = new GLTFLoader();
 
   loader.load(
-    'datawarehouse (1).glb',
+    'EZ-DMT.glb',
     (gltf) => {
       const modelGroup = gltf.scene;
       warehouseModel = new THREE.Group();

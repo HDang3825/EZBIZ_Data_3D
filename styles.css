@@ -776,7 +776,8 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 1; /* Nằm trước hình nền body nhưng nằm dưới canvas */
+  z-index: 1;
+  /* Nằm trước hình nền body nhưng nằm dưới canvas */
   opacity: 0;
   pointer-events: none;
   transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -796,7 +797,8 @@ h2 {
   width: 100%;
   height: 100%;
   background: #000000;
-  z-index: 99999; /* Đảm bảo nằm trên mọi thành phần khác kể cả canvas và UI */
+  z-index: 99999;
+  /* Đảm bảo nằm trên mọi thành phần khác kể cả canvas và UI */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -805,4 +807,235 @@ h2 {
 #transition-overlay.active {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* ==========================================
+   HUD GRID LAYOUT & OPTIMIZATION FOR STAGE 3
+   ========================================== */
+.stage3-hud-grid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 100px;
+  /* Khoảng cách rộng rãi giữa các ô (100px) */
+  width: 95%;
+  max-width: 1800px;
+  /* Tăng chiều rộng tối đa để chứa card to hơn */
+  z-index: 100;
+  pointer-events: auto;
+  transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  opacity: 1;
+}
+
+.stage3-hud-grid.hidden {
+  display: flex !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, -42%) scale(0.96) !important;
+  visibility: hidden !important;
+}
+
+/* Thêm lớp phủ mờ tối dạng radial phía sau lưới card để tối ưu hóa hiển thị trên video nền */
+.stage3-hud-grid::before {
+  content: '';
+  position: fixed;
+  top: -50vh;
+  left: -50vw;
+  width: 200vw;
+  height: 200vh;
+  background: radial-gradient(circle, rgba(0, 3, 10, 0.3) 0%, rgba(0, 0, 0, 0.82) 75%);
+  z-index: -1;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+}
+
+.stage3-hud-grid.hidden::before {
+  opacity: 0 !important;
+}
+
+/* ==========================================
+   SCI-FI TECH CARD FOR PHASE 3
+   ========================================== */
+.tech-card-phase3 {
+  position: relative;
+  width: 280px;
+  /* Xoay dọc thẻ: Chiều rộng 380px */
+  height: 580px;
+  /* Chiều cao 580px */
+  background: rgba(8, 15, 30, 0.7);
+  /* Nền kính tối không gian vũ trụ dày hơn tí để tương phản tốt hơn */
+  backdrop-filter: blur(16px);
+  
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid rgba(56, 189, 248, 0.6);
+  /* Viền màu Neon Blue */
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.2), inset 0 0 15px rgba(56, 189, 248, 0.15);
+  border-radius: 4px;
+  padding: 32px 28px 28px 28px;
+  color: #ffffff;
+  font-family: var(--font-ui);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+
+  /* Cắt góc xéo góc (Chamfered corners) giống hệt ảnh mẫu */
+  clip-path: polygon(20px 0%, calc(100% - 20px) 0%, 100% 20px,
+      100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%,
+      0% calc(100% - 20px), 0% 20px);
+
+  /* Các thuộc tính ép tăng tốc phần cứng GPU để triệt tiêu hoàn toàn hiện tượng chớp nháy (flicker) đường viền do clip-path và subpixel rendering */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  -webkit-font-smoothing: subpixel-antialiased;
+
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* Áp dụng hiệu ứng lơ lửng */
+  animation: scifi-float 6s ease-in-out infinite;
+}
+
+/* Phân bổ độ trễ thời gian lơ lửng của từng card để tạo cảm giác tự nhiên, nhịp nhàng */
+.tech-card-phase3:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.tech-card-phase3:nth-child(2) {
+  animation-delay: 1.8s;
+}
+
+.tech-card-phase3:nth-child(3) {
+  animation-delay: 3.6s;
+}
+
+/* Hoạt ảnh lơ lửng nhẹ nhàng sử dụng translate3d để kích hoạt phần cứng GPU */
+@keyframes scifi-float {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -25px, 0); /* Tăng biên độ lơ lửng lên -25px để hiệu ứng rõ nét và mạnh mẽ hơn */
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Hiệu ứng phát sáng, nhấc lên & tạm dừng lơ lửng khi hover */
+.tech-card-phase3:hover {
+  border-color: rgba(56, 189, 248, 1);
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.55), inset 0 0 20px rgba(56, 189, 248, 0.3);
+  transform: translate3d(0, -35px, 0) scale(1.03); /* Tăng độ nhấc khi hover lên -35px để vượt hẳn biên độ bay tự do */
+  animation-play-state: paused;
+  /* Tạm dừng lơ lửng để ưu tiên hành động hover của người dùng */
+}
+
+/* Đường viền mảnh trang trí bên trong (Inner Border) */
+.tech-card-phase3::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  pointer-events: none;
+  clip-path: polygon(17px 0%, calc(100% - 17px) 0%, 100% 17px,
+      100% calc(100% - 17px), calc(100% - 17px) 100%, 17px 100%,
+      0% calc(100% - 17px), 0% 17px);
+}
+
+/* --- TAI TRANG TRÍ (BRACKETS / TABS) --- */
+
+/* Tai Đen-Xanh góc Trên Cùng */
+.tech-card-phase3 .top-tab {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 8px;
+  background: #0b1329;
+  border-bottom: 2px solid #38bdf8;
+  border-left: 2px solid #38bdf8;
+  border-right: 2px solid #38bdf8;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* Tai sườn trái màu đen */
+.tech-card-phase3 .left-bracket {
+  position: absolute;
+  left: 0;
+  top: 40%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 60px;
+  background: #0b1329;
+  border-right: 2px solid #38bdf8;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
+/* Dải sọc cảnh báo góc Dưới Phải */
+.tech-card-phase3 .bottom-right-stripes {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  width: 50px;
+  height: 12px;
+  background: repeating-linear-gradient(-45deg,
+      transparent,
+      transparent 4px,
+      rgba(56, 189, 248, 0.45) 4px,
+      rgba(56, 189, 248, 0.45) 8px);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 2px;
+}
+
+/* 3 Ô vuông trang trí sườn phải */
+.tech-card-phase3 .right-nodes {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tech-card-phase3 .right-nodes span {
+  width: 5px;
+  height: 5px;
+  background: rgba(56, 189, 248, 0.5);
+  border: 1px solid #38bdf8;
+  border-radius: 1px;
+}
+
+/* Bố cục mẫu cho Header & Nội dung của Card */
+.tech-card-title {
+  font-family: var(--font-tech);
+  font-size: 1.25rem;
+  letter-spacing: 1.8px;
+  color: #38bdf8;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.tech-card-body {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #cbd5e1;
 }

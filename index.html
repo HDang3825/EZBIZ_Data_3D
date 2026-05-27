@@ -7,9 +7,9 @@
   <title>Mô Hình 3D Data Warehouse DMT </title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- <link
+  <link
     href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;500;700&display=swap"
-    rel="stylesheet"> -->
+    rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/svg+xml" href="assets/logo_eb.png">
 
@@ -30,7 +30,7 @@
 
   <!-- Background Video for Stage 3 (Autoplay, Loop, Muted) -->
   <video id="bg-video-stage3" loop muted playsinline>
-    <source src="assets/spc.mp4" type="video/mp4">
+    <source src="assets/hi.mp4" type="video/mp4">
   </video>
 
   <!-- Three.js Canvas -->
@@ -47,15 +47,17 @@
           <h3>DMT_EZBIZ</h3>
         </div>
         <button id="btn-toggle-panel" class="btn-icon" title="Thu nhỏ / Mở rộng">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" id="toggle-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"
+            id="toggle-icon">
             <polyline points="18 15 12 9 6 15"></polyline>
           </svg>
         </button>
       </div>
-      
+
       <div class="panel-content-scroll">
-        <h2 class="panel-main-title">LÝ DO CHỌN DATA WAREHOUSE <br><span class="highlight-text">THAY VÌ DATABASE TRUYỀN THỐNG</span></h2>
-        
+        <h2 class="panel-main-title">LÝ DO CHỌN DATA WAREHOUSE <br><span class="highlight-text">THAY VÌ DATABASE TRUYỀN
+            THỐNG</span></h2>
+
         <div class="comparison-grid">
           <div class="comparison-item">
             <div class="item-icon">
@@ -67,7 +69,8 @@
             </div>
             <div class="item-text">
               <h4>Tối Ưu Hóa Phân Tích (OLAP)</h4>
-              <p>Database tối ưu cho giao dịch nhanh hàng ngày (OLTP). Data Warehouse tối ưu cho truy vấn phân tích, tổng hợp báo cáo trên lượng dữ liệu khổng lồ.</p>
+              <p>Database tối ưu cho giao dịch nhanh hàng ngày (OLTP). Data Warehouse tối ưu cho truy vấn phân tích,
+                tổng hợp báo cáo trên lượng dữ liệu khổng lồ.</p>
             </div>
           </div>
 
@@ -79,7 +82,8 @@
             </div>
             <div class="item-text">
               <h4>Hợp Nhất Dữ Liệu Đa Nguồn</h4>
-              <p>Database chỉ chứa dữ liệu một hệ thống đơn lẻ. Data Warehouse liên kết, đồng bộ dữ liệu từ nhiều phòng ban, CRM, ERP về một nơi duy nhất.</p>
+              <p>Database chỉ chứa dữ liệu một hệ thống đơn lẻ. Data Warehouse liên kết, đồng bộ dữ liệu từ nhiều phòng
+                ban, CRM, ERP về một nơi duy nhất.</p>
             </div>
           </div>
 
@@ -91,7 +95,8 @@
             </div>
             <div class="item-text">
               <h4>Bảo Vệ Hiệu Năng Vận Hành</h4>
-              <p>Chạy các báo cáo phức tạp trực tiếp trên Database có thể làm treo hệ thống. Data Warehouse chạy độc lập giúp hệ thống vận hành luôn mượt mà.</p>
+              <p>Chạy các báo cáo phức tạp trực tiếp trên Database có thể làm treo hệ thống. Data Warehouse chạy độc lập
+                giúp hệ thống vận hành luôn mượt mà.</p>
             </div>
           </div>
 
@@ -104,10 +109,71 @@
             </div>
             <div class="item-text">
               <h4>Làm Sạch & Chuẩn Hóa ETL</h4>
-              <p>Dữ liệu Database thô và phân mảnh. Data Warehouse trải qua quy trình lọc nhiễu, chuẩn hóa cấu trúc giúp thông tin phân tích đạt độ chính xác cao.</p>
+              <p>Dữ liệu Database thô và phân mảnh. Data Warehouse trải qua quy trình lọc nhiễu, chuẩn hóa cấu trúc giúp
+                thông tin phân tích đạt độ chính xác cao.</p>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Giao diện Giai đoạn 3 (Sci-Fi HUD Cards) -->
+    <div id="stage3-hud-container" class="stage3-hud-grid hidden">
+      <!-- Card 1 -->
+      <div class="tech-card-phase3">
+        <div class="top-tab"></div>
+        <div class="left-bracket"></div>
+        <div class="right-nodes">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="tech-card-content">
+          <div class="tech-card-title">CLOUD DATA INTEGRATION</div>
+          <div class="tech-card-body">
+            Hệ thống tự động đồng bộ hóa dữ liệu thời gian thực (Real-time Sync) giữa các chuỗi bán lẻ vật lý và trung
+            tâm lưu trữ dữ liệu đám mây DMT.
+          </div>
+        </div>
+        <div class="bottom-right-stripes"></div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="tech-card-phase3">
+        <div class="top-tab"></div>
+        <div class="left-bracket"></div>
+        <div class="right-nodes">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="tech-card-content">
+          <div class="tech-card-title">AI INVENTORY OPTIMIZER</div>
+          <div class="tech-card-body">
+            Trí tuệ nhân tạo phân tích luồng nhập xuất liên tục để dự báo lượng hàng tồn kho tối ưu nhất, ngăn chặn tối
+            đa tình trạng đứt gãy chuỗi cung ứng.
+          </div>
+        </div>
+        <div class="bottom-right-stripes"></div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="tech-card-phase3">
+        <div class="top-tab"></div>
+        <div class="left-bracket"></div>
+        <div class="right-nodes">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="tech-card-content">
+          <div class="tech-card-title">BUSINESS DECISION ENGINE</div>
+          <div class="tech-card-body">
+            Chuẩn hóa và khai thác dữ liệu lịch sử lớn bằng các mô hình máy học (ML), cung cấp báo cáo Business
+            Intelligence (BI) hỗ trợ các quyết định kinh doanh chiến lược.
+          </div>
+        </div>
+        <div class="bottom-right-stripes"></div>
       </div>
     </div>
 

@@ -364,6 +364,12 @@ function triggerStage3Transition() {
     nodeName.textContent = "Cosmic Data Space";
   }
 
+  // 5. Hiển thị HUD cards của Giai đoạn 3
+  const stage3Hud = document.getElementById('stage3-hud-container');
+  if (stage3Hud) {
+    stage3Hud.classList.remove('hidden');
+  }
+
   logToTerminal("[STAGE 3] Cosmic Space Background activated.", "success");
 }
 
@@ -421,6 +427,12 @@ function triggerStage2From3() {
   const nodeName = document.getElementById('node-name');
   if (nodeName) {
     nodeName.textContent = "Data Warehouse Core";
+  }
+
+  // 4. Ẩn HUD cards của Giai đoạn 3
+  const stage3Hud = document.getElementById('stage3-hud-container');
+  if (stage3Hud) {
+    stage3Hud.classList.add('hidden');
   }
 
   logToTerminal("[STAGE 2] Returned to Data Warehouse Core.", "warning");
