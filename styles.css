@@ -818,14 +818,13 @@ h2 {
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
-  flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 100px;
-  /* Khoảng cách rộng rãi giữa các ô (100px) */
   width: 95%;
-  max-width: 1800px;
-  /* Tăng chiều rộng tối đa để chứa card to hơn */
+  max-width: 2200px;
+  height: 950px;
+  perspective: 1000px;
+  transform-style: preserve-3d;
   z-index: 100;
   pointer-events: auto;
   transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
@@ -863,21 +862,22 @@ h2 {
    SCI-FI TECH CARD FOR PHASE 3
    ========================================== */
 .tech-card-phase3 {
-  position: relative;
-  width: 280px;
-  /* Xoay dọc thẻ: Chiều rộng 380px */
-  height: 580px;
-  /* Chiều cao 580px */
-  background: rgba(8, 15, 30, 0.7);
+  position: absolute;
+  width: 800px;
+  /* Tăng tiếp 25% lên 800px */
+  height: 500px;
+  /* Tăng tiếp 25% lên 500px */
+  background: rgba(8, 15, 30, 0.75);
   /* Nền kính tối không gian vũ trụ dày hơn tí để tương phản tốt hơn */
   backdrop-filter: blur(16px);
-  
+
   -webkit-backdrop-filter: blur(16px);
   border: 2px solid rgba(56, 189, 248, 0.6);
   /* Viền màu Neon Blue */
   box-shadow: 0 0 25px rgba(56, 189, 248, 0.2), inset 0 0 15px rgba(56, 189, 248, 0.15);
   border-radius: 4px;
-  padding: 32px 28px 28px 28px;
+  padding: 16px;
+  /* Giảm padding để bức ảnh hiển thị to và đẹp nhất dạng viền bezel */
   color: #ffffff;
   font-family: var(--font-ui);
   display: flex;
@@ -898,47 +898,67 @@ h2 {
   will-change: transform, opacity;
   -webkit-font-smoothing: subpixel-antialiased;
 
-  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-
-  /* Áp dụng hiệu ứng lơ lửng */
-  animation: scifi-float 6s ease-in-out infinite;
+  /* Sử dụng spring transition curve (overshoot) để chuyển slide cực kỳ chuyên nghiệp */
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease, border-color 0.5s, box-shadow 0.5s;
+  cursor: pointer;
 }
 
-/* Phân bổ độ trễ thời gian lơ lửng của từng card để tạo cảm giác tự nhiên, nhịp nhàng */
-.tech-card-phase3:nth-child(1) {
-  animation-delay: 0s;
+/* Trạng thái Carousel 3D */
+.tech-card-phase3.card-left {
+  transform: translate3d(-580px, 0, -250px) scale(0.8) rotateY(30deg);
+  opacity: 0.25;
+  z-index: 5;
+  pointer-events: auto;
 }
 
-.tech-card-phase3:nth-child(2) {
-  animation-delay: 1.8s;
+.tech-card-phase3.card-active {
+  transform: translate3d(0, 0, 0) scale(1.1);
+  opacity: 1;
+  z-index: 10;
+  pointer-events: auto;
+  border-color: rgba(56, 189, 248, 1);
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.55), inset 0 0 20px rgba(56, 189, 248, 0.3);
+  animation: scifi-float-active 6s ease-in-out infinite;
 }
 
-.tech-card-phase3:nth-child(3) {
-  animation-delay: 3.6s;
+.tech-card-phase3.card-right {
+  transform: translate3d(580px, 0, -250px) scale(0.8) rotateY(-30deg);
+  opacity: 0.25;
+  z-index: 5;
+  pointer-events: auto;
 }
 
-/* Hoạt ảnh lơ lửng nhẹ nhàng sử dụng translate3d để kích hoạt phần cứng GPU */
-@keyframes scifi-float {
+/* Hoạt ảnh lơ lửng nhẹ cho card ở giữa */
+@keyframes scifi-float-active {
   0% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1.1);
   }
 
   50% {
-    transform: translate3d(0, -25px, 0); /* Tăng biên độ lơ lửng lên -25px để hiệu ứng rõ nét và mạnh mẽ hơn */
+    transform: translate3d(0, -15px, 0) scale(1.1);
   }
 
   100% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1.1);
   }
 }
 
-/* Hiệu ứng phát sáng, nhấc lên & tạm dừng lơ lửng khi hover */
-.tech-card-phase3:hover {
-  border-color: rgba(56, 189, 248, 1);
-  box-shadow: 0 0 35px rgba(56, 189, 248, 0.55), inset 0 0 20px rgba(56, 189, 248, 0.3);
-  transform: translate3d(0, -35px, 0) scale(1.03); /* Tăng độ nhấc khi hover lên -35px để vượt hẳn biên độ bay tự do */
+/* Hover cho từng trạng thái */
+.tech-card-phase3.card-active:hover {
   animation-play-state: paused;
-  /* Tạm dừng lơ lửng để ưu tiên hành động hover của người dùng */
+  transform: translate3d(0, -20px, 0) scale(1.13);
+  border-color: rgba(56, 189, 248, 1);
+  box-shadow: 0 0 45px rgba(56, 189, 248, 0.7), inset 0 0 25px rgba(56, 189, 248, 0.4);
+}
+
+.tech-card-phase3.card-left:hover {
+  opacity: 0.6;
+  transform: translate3d(-580px, -10px, -200px) scale(0.83) rotateY(25deg);
+}
+
+.tech-card-phase3.card-right:hover {
+  opacity: 0.6;
+  transform: translate3d(580px, -10px, -200px) scale(0.83) rotateY(-25deg);
 }
 
 /* Đường viền mảnh trang trí bên trong (Inner Border) */
@@ -1023,19 +1043,57 @@ h2 {
   border-radius: 1px;
 }
 
-/* Bố cục mẫu cho Header & Nội dung của Card */
-.tech-card-title {
-  font-family: var(--font-tech);
-  font-size: 1.25rem;
-  letter-spacing: 1.8px;
-  color: #38bdf8;
-  text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-  margin-bottom: 12px;
-  text-transform: uppercase;
+/* Màn hình hiển thị hình ảnh công nghệ tràn khung */
+.tech-card-img-only {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Lấp đầy khung bezel */
+  border-radius: 2px;
+  z-index: 1;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  /* Đường viền mỏng tăng tính kỹ thuật */
 }
 
-.tech-card-body {
-  font-size: 0.98rem;
-  line-height: 1.7;
-  color: #cbd5e1;
+/* Tự động phóng to nhẹ hình ảnh khi di chuột vào thẻ */
+.tech-card-phase3:hover .tech-card-img-only {
+  transform: scale(1.04);
+}
+
+/* Hiệu ứng quét tần số laser chạy dọc màn hình kính (Cyber Radar Scanline) */
+.cyber-scanner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(rgba(56, 189, 248, 0) 0%,
+      rgba(56, 189, 248, 0.08) 40%,
+      rgba(56, 189, 248, 0.35) 50%,
+      rgba(56, 189, 248, 0.08) 60%,
+      rgba(56, 189, 248, 0) 100%);
+  background-size: 100% 200px;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  animation: cyber-scan 6s linear infinite;
+  border-radius: 4px;
+}
+
+@keyframes cyber-scan {
+  0% {
+    background-position: 0 -200px;
+  }
+
+  100% {
+    background-position: 0 400px;
+  }
+}
+
+/* Tăng tốc độ và độ nổi bật của tia quét khi người dùng hover */
+.tech-card-phase3:hover .cyber-scanner {
+  opacity: 0.6;
+  animation-duration: 3.5s;
 }

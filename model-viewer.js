@@ -287,7 +287,7 @@ export function loadWarehouseModel(scene, onLoadCallback, onLogCallback) {
   const loader = new GLTFLoader();
 
   loader.load(
-    'EZ-DMT.glb',
+    'EZ-DMT1.glb',
     (gltf) => {
       const modelGroup = gltf.scene;
       warehouseModel = new THREE.Group();

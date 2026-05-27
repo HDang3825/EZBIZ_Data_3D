@@ -34,6 +34,57 @@ let systemState = STATE_OVERVIEW;
 let currentStage = STAGE_1_IMAC;
 let currentSlide = 1; // 1: iMac Overview, 2: Warehouse, 3: Warehouse + Panel, 4: Warehouse Panel Dismissed
 
+// Biến quản lý Carousel Giai đoạn 3 (3D Cover Flow)
+let carouselIndex = 1; // Mặc định ở giữa
+let carouselInterval = null;
+
+// Hàm cập nhật layout / vị trí Carousel 3D
+function updateStage3Carousel() {
+  const cards = document.querySelectorAll('.tech-card-phase3');
+  if (cards.length === 0) return;
+
+  cards.forEach((card, idx) => {
+    card.classList.remove('card-active', 'card-left', 'card-right');
+
+    const leftIdx = (carouselIndex - 1 + cards.length) % cards.length;
+    const rightIdx = (carouselIndex + 1) % cards.length;
+
+    if (idx === carouselIndex) {
+      card.classList.add('card-active');
+    } else if (idx === leftIdx) {
+      card.classList.add('card-left');
+    } else if (idx === rightIdx) {
+      card.classList.add('card-right');
+    }
+  });
+}
+
+// Bắt đầu chạy tự động xoay vòng Carousel (Vô hiệu hóa tự động chuyển theo yêu cầu)
+function startCarouselAutoplay() {
+  // Không hoạt động vì đã tắt tự động chuyển
+}
+
+// Dừng tự động xoay vòng Carousel
+function stopCarouselAutoplay() {
+  // Không cần dọn dẹp interval vì đã tắt autoplay
+}
+
+// Đăng ký sự kiện tương tác chuột cho các thẻ trong Carousel Stage 3
+function setupStage3CarouselEvents() {
+  const cards = document.querySelectorAll('.tech-card-phase3');
+  cards.forEach((card, idx) => {
+    // Click vào thẻ bất kỳ để đưa lên làm ảnh chính
+    card.addEventListener('click', (e) => {
+      if (idx !== carouselIndex) {
+        e.stopPropagation();
+        carouselIndex = idx;
+        updateStage3Carousel();
+        logToTerminal(`Carousel: Đã chuyển sang ảnh ${idx + 1}`, "cyan");
+      }
+    });
+  });
+}
+
 // Biến hỗ trợ phân biệt Click và Drag (để xoay không bị thoát cảnh)
 let clickStartX = 0;
 let clickStartY = 0;
@@ -369,10 +420,13 @@ function triggerStage3Transition() {
     nodeName.textContent = "Cosmic Data Space";
   }
 
-  // 5. Hiển thị HUD cards của Giai đoạn 3
+  // 5. Hiển thị HUD cards của Giai đoạn 3 và khởi chạy Carousel
   const stage3Hud = document.getElementById('stage3-hud-container');
   if (stage3Hud) {
     stage3Hud.classList.remove('hidden');
+    carouselIndex = 1; // Đặt mặc định card ở giữa active
+    updateStage3Carousel();
+    startCarouselAutoplay();
   }
 
   logToTerminal("[STAGE 3] Cosmic Space Background activated.", "success");
@@ -434,7 +488,8 @@ function triggerStage2From3() {
     nodeName.textContent = "Data Warehouse Core";
   }
 
-  // 4. Ẩn HUD cards của Giai đoạn 3 và đóng cửa trạm dữ liệu trở lại
+  // 4. Ẩn HUD cards của Giai đoạn 3, dừng carousel và đóng cửa trạm dữ liệu trở lại
+  stopCarouselAutoplay();
   const stage3Hud = document.getElementById('stage3-hud-container');
   if (stage3Hud) {
     stage3Hud.classList.add('hidden');
@@ -442,12 +497,16 @@ function triggerStage2From3() {
 
   // Đóng cửa hành lang dữ liệu trở lại trạng thái ban đầu
   resetDoorAnimation();
- 
+
   logToTerminal("[STAGE 2] Returned to Data Warehouse Core.", "warning");
 }
 
 // Đăng ký các sự kiện tương tác của UI & Cửa sổ trình duyệt
 function setupEvents() {
+  // Khởi tạo các sự kiện cho Carousel Stage 3
+  setupStage3CarouselEvents();
+  updateStage3Carousel();
+
   // Tự động focus vào cửa sổ trang web khi người dùng rê chuột vào vùng canvas 3D
   const canvas = document.getElementById('webgl-canvas');
   if (canvas) {
@@ -652,11 +711,27 @@ function setupEvents() {
       }
     }
 
+    // Thoát Stage 3 về Stage 2 bằng phím Escape hoặc Backspace
+    if (e.key === 'Escape' || e.key === 'Backspace') {
+      if (currentStage === STAGE_3_SPACE) {
+        e.preventDefault();
+        e.stopPropagation();
+        triggerStage2From3();
+        return;
+      }
+    }
+
     const nextKeys = ['ArrowRight', 'PageDown', 'ArrowDown'];
     const prevKeys = ['ArrowLeft', 'PageUp', 'ArrowUp'];
 
     if (nextKeys.includes(e.key)) {
-      if (currentStage === STAGE_1_IMAC && (systemState === STATE_OVERVIEW || systemState === STATE_ZOOMED_IN)) {
+      if (currentStage === STAGE_3_SPACE) {
+        e.preventDefault();
+        e.stopPropagation();
+        carouselIndex = (carouselIndex + 1) % 3;
+        updateStage3Carousel();
+        logToTerminal(`Carousel: Đã chuyển sang ảnh ${carouselIndex + 1}`, "cyan");
+      } else if (currentStage === STAGE_1_IMAC && (systemState === STATE_OVERVIEW || systemState === STATE_ZOOMED_IN)) {
         e.preventDefault();
         e.stopPropagation();
         triggerStage2Transition(); // Đặt currentSlide = 2 trong hàm
@@ -702,7 +777,7 @@ function setupEvents() {
           } else if (currentSlide === 7) {
             e.preventDefault();
             e.stopPropagation();
-
+ 
             // 1. Chạy hoạt ảnh mở cửa từ GLB
             const hasAnim = playDoorOpenAnimation();
             if (hasAnim) {
@@ -710,15 +785,15 @@ function setupEvents() {
             } else {
               logToTerminal("[ANIMATION] Tiến hành bay camera qua cổng dữ liệu...", "warning");
             }
-
+ 
             // 2. Kích hoạt camera bay tiến thẳng vào cửa
             systemState = STATE_TRANSITIONING_STAGE3;
             controls.enabled = false;
-
+ 
             // Tọa độ đích của camera: Bay hoàn toàn đi xuyên qua cánh cửa (Z = -8.0 vượt qua cánh cửa ở khoảng -5.0)
             targetCamPos.set(0, -0.15, -8.0);
             targetLookAt.set(0, -0.15, -12.0);
-
+ 
             // 3. Sau 2.5 giây (để camera bay từ từ, mượt mà đi xuyên qua cửa), chuyển cảnh hẳn sang Stage 3
             setTimeout(() => {
               triggerStage3Transition();
@@ -730,7 +805,9 @@ function setupEvents() {
       if (currentStage === STAGE_3_SPACE) {
         e.preventDefault();
         e.stopPropagation();
-        triggerStage2From3();
+        carouselIndex = (carouselIndex - 1 + 3) % 3;
+        updateStage3Carousel();
+        logToTerminal(`Carousel: Đã chuyển sang ảnh ${carouselIndex + 1}`, "cyan");
       } else if (currentStage === STAGE_2_WAREHOUSE) {
         const infoPanel = document.getElementById('dw-info-panel');
         const items = document.querySelectorAll('.comparison-item');
