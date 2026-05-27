@@ -37,20 +37,35 @@ let currentSlide = 1; // 1: iMac Overview, 2: Warehouse, 3: Warehouse + Panel, 4
 // Biến quản lý Carousel Giai đoạn 3 (3D Cover Flow)
 let carouselIndex = 1; // Mặc định ở giữa
 let carouselInterval = null;
+let isDetailActive = false;       // Trạng thái mở chi tiết
+let readyToTransition = false;    // Đang chờ click tiếp theo để chuyển slide
 
 // Hàm cập nhật layout / vị trí Carousel 3D
 function updateStage3Carousel() {
   const cards = document.querySelectorAll('.tech-card-phase3');
+  const hudContainer = document.getElementById('stage3-hud-container');
   if (cards.length === 0) return;
 
+  // Cập nhật trạng thái xem chi tiết trên HUD container
+  if (hudContainer) {
+    if (isDetailActive) {
+      hudContainer.classList.add('detail-viewing');
+    } else {
+      hudContainer.classList.remove('detail-viewing');
+    }
+  }
+
   cards.forEach((card, idx) => {
-    card.classList.remove('card-active', 'card-left', 'card-right');
+    card.classList.remove('card-active', 'card-left', 'card-right', 'detail-active');
 
     const leftIdx = (carouselIndex - 1 + cards.length) % cards.length;
     const rightIdx = (carouselIndex + 1) % cards.length;
 
     if (idx === carouselIndex) {
       card.classList.add('card-active');
+      if (isDetailActive) {
+        card.classList.add('detail-active');
+      }
     } else if (idx === leftIdx) {
       card.classList.add('card-left');
     } else if (idx === rightIdx) {
@@ -73,13 +88,22 @@ function stopCarouselAutoplay() {
 function setupStage3CarouselEvents() {
   const cards = document.querySelectorAll('.tech-card-phase3');
   cards.forEach((card, idx) => {
-    // Click vào thẻ bất kỳ để đưa lên làm ảnh chính
     card.addEventListener('click', (e) => {
       if (idx !== carouselIndex) {
+        // Click vào thẻ phụ để xoay nó làm thẻ chính, đóng chi tiết
         e.stopPropagation();
         carouselIndex = idx;
+        isDetailActive = false;
+        readyToTransition = false;
         updateStage3Carousel();
         logToTerminal(`Carousel: Đã chuyển sang ảnh ${idx + 1}`, "cyan");
+      } else {
+        // Click vào thẻ chính thì toggle xem chi tiết
+        e.stopPropagation();
+        isDetailActive = !isDetailActive;
+        readyToTransition = !isDetailActive; // Nếu vừa đóng chi tiết, lần click/phím tiếp theo sẽ sẵn sàng chuyển slide
+        updateStage3Carousel();
+        logToTerminal(isDetailActive ? `Carousel: Đang xem chi tiết ảnh ${idx + 1}` : `Carousel: Đã đóng chi tiết ảnh ${idx + 1}`, "cyan");
       }
     });
   });
@@ -490,6 +514,8 @@ function triggerStage2From3() {
 
   // 4. Ẩn HUD cards của Giai đoạn 3, dừng carousel và đóng cửa trạm dữ liệu trở lại
   stopCarouselAutoplay();
+  isDetailActive = false;
+  readyToTransition = false;
   const stage3Hud = document.getElementById('stage3-hud-container');
   if (stage3Hud) {
     stage3Hud.classList.add('hidden');
@@ -728,9 +754,24 @@ function setupEvents() {
       if (currentStage === STAGE_3_SPACE) {
         e.preventDefault();
         e.stopPropagation();
-        carouselIndex = (carouselIndex + 1) % 3;
-        updateStage3Carousel();
-        logToTerminal(`Carousel: Đã chuyển sang ảnh ${carouselIndex + 1}`, "cyan");
+        if (!isDetailActive && !readyToTransition) {
+          // Lần 1: Mở nội dung chi tiết
+          isDetailActive = true;
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1}`, "cyan");
+        } else if (isDetailActive) {
+          // Lần 2: Đóng nội dung chi tiết
+          isDetailActive = false;
+          readyToTransition = true;
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
+        } else if (readyToTransition) {
+          // Lần 3: Chuyển carousel
+          readyToTransition = false;
+          carouselIndex = (carouselIndex + 1) % 3;
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Đã chuyển sang ảnh ${carouselIndex + 1}`, "cyan");
+        }
       } else if (currentStage === STAGE_1_IMAC && (systemState === STATE_OVERVIEW || systemState === STATE_ZOOMED_IN)) {
         e.preventDefault();
         e.stopPropagation();
@@ -805,6 +846,9 @@ function setupEvents() {
       if (currentStage === STAGE_3_SPACE) {
         e.preventDefault();
         e.stopPropagation();
+        // Reset chi tiết khi bấm phím lùi slide
+        isDetailActive = false;
+        readyToTransition = false;
         carouselIndex = (carouselIndex - 1 + 3) % 3;
         updateStage3Carousel();
         logToTerminal(`Carousel: Đã chuyển sang ảnh ${carouselIndex + 1}`, "cyan");
