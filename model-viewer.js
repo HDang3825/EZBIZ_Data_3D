@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 let laptopModel = null;
 let warehouseModel = null;
 let screenMesh = null;
+let warehouseMixer = null;   // Mixer hoạt ảnh chính cho mô hình warehouse
+let doorOpenActions = [];    // Danh sách các ClipActions chạy đồng thời (cho Blender multi-clip)
 
 // Các biến phục vụ Raycasting (bắt tọa độ chuột)
 const raycaster = new THREE.Raycaster();
@@ -311,6 +313,22 @@ export function loadWarehouseModel(scene, onLoadCallback, onLogCallback) {
       // Xoay 180 độ quanh Y để đổi hướng (xoay đầu) của hành lang
       warehouseModel.rotation.y = Math.PI;
 
+      // Khởi tạo Mixer hoạt ảnh nếu có trong file GLB
+      if (gltf.animations && gltf.animations.length > 0) {
+        onLogCallback(`[ANIMATION] Found ${gltf.animations.length} animation clips in EZ-DMT.glb.`);
+        warehouseMixer = new THREE.AnimationMixer(warehouseModel); // Đổi target sang warehouseModel để đảm bảo tương thích phân cấp
+        doorOpenActions = [];
+
+        // Tạo action cho TẤT CẢ các clip hoạt ảnh để chạy đồng thời (vấn đề Blender multi-clip)
+        gltf.animations.forEach((clip, i) => {
+          onLogCallback(`[ANIMATION] Preparing clip ${i}: "${clip.name}" (Duration: ${clip.duration.toFixed(2)}s)`);
+          const action = warehouseMixer.clipAction(clip);
+          action.setLoop(THREE.LoopOnce);
+          action.clampWhenFinished = true;
+          doorOpenActions.push(action);
+        });
+      }
+
       // Thiết lập bóng đổ cho các mesh trong warehouse
       warehouseModel.traverse((child) => {
         if (child.isMesh) {
@@ -348,4 +366,33 @@ export function getWarehouseModel() {
 
 export function getScreenCenterWorld() {
   return screenCenterWorld;
+}
+
+export function getAnimationMixer() {
+  return warehouseMixer;
+}
+
+export function playDoorOpenAnimation() {
+  console.log("playDoorOpenAnimation called! Actions count:", doorOpenActions.length);
+  if (doorOpenActions && doorOpenActions.length > 0) {
+    doorOpenActions.forEach((action, idx) => {
+      console.log(`Action ${idx}: name="${action.getClip().name}", isRunning=${action.isRunning()}, timeScale=${action.timeScale}`);
+      action.reset();
+      action.play();
+    });
+    return true;
+  }
+  console.warn("No doorOpenActions found in playDoorOpenAnimation!");
+  return false;
+}
+
+export function resetDoorAnimation() {
+  if (doorOpenActions && doorOpenActions.length > 0) {
+    doorOpenActions.forEach(action => {
+      action.stop(); // Dừng hoạt ảnh, đưa cửa về trạng thái đóng ban đầu
+    });
+  }
+  if (warehouseMixer) {
+    warehouseMixer.stopAllAction(); // Đảm bảo mọi mesh được reset hoàn toàn về vị trí ban đầu
+  }
 }

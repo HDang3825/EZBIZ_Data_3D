@@ -11,7 +11,10 @@ import {
   getOverviewTargets,
   getLaptopModel,
   getWarehouseModel,
-  getScreenCenterWorld
+  getScreenCenterWorld,
+  playDoorOpenAnimation,
+  getAnimationMixer,
+  resetDoorAnimation
 } from './model-viewer.js';
 
 // Các trạng thái của Camera
@@ -20,6 +23,7 @@ const STATE_ZOOMING_IN = 1;
 const STATE_ZOOMED_IN = 2;
 const STATE_ZOOMING_OUT = 3;
 const STATE_TRANSITIONING = 4;   // Bay qua màn hình để chuyển sang giai đoạn 2
+const STATE_TRANSITIONING_STAGE3 = 5; // Bay qua cánh cửa đang mở để sang giai đoạn 3
 
 // Các giai đoạn (Stages) của hệ thống
 const STAGE_1_IMAC = 1;
@@ -46,6 +50,7 @@ const overviewLookAt = new THREE.Vector3(0, 0, 0);
 
 // Khởi tạo đồng hồ hệ thống
 const clock = new THREE.Clock();
+const animClock = new THREE.Clock(); // Đồng hồ chuyên dụng cho hoạt ảnh (tránh xung đột getDelta)
 
 // Hàm ghi log vào cửa sổ terminal
 function logToTerminal(message, type = '') {
@@ -429,12 +434,15 @@ function triggerStage2From3() {
     nodeName.textContent = "Data Warehouse Core";
   }
 
-  // 4. Ẩn HUD cards của Giai đoạn 3
+  // 4. Ẩn HUD cards của Giai đoạn 3 và đóng cửa trạm dữ liệu trở lại
   const stage3Hud = document.getElementById('stage3-hud-container');
   if (stage3Hud) {
     stage3Hud.classList.add('hidden');
   }
 
+  // Đóng cửa hành lang dữ liệu trở lại trạng thái ban đầu
+  resetDoorAnimation();
+ 
   logToTerminal("[STAGE 2] Returned to Data Warehouse Core.", "warning");
 }
 
@@ -694,7 +702,27 @@ function setupEvents() {
           } else if (currentSlide === 7) {
             e.preventDefault();
             e.stopPropagation();
-            triggerStage3Transition();
+
+            // 1. Chạy hoạt ảnh mở cửa từ GLB
+            const hasAnim = playDoorOpenAnimation();
+            if (hasAnim) {
+              logToTerminal("[ANIMATION] 🚪 Đang mở cửa trạm dữ liệu DMT...", "warning");
+            } else {
+              logToTerminal("[ANIMATION] Tiến hành bay camera qua cổng dữ liệu...", "warning");
+            }
+
+            // 2. Kích hoạt camera bay tiến thẳng vào cửa
+            systemState = STATE_TRANSITIONING_STAGE3;
+            controls.enabled = false;
+
+            // Tọa độ đích của camera: Bay hoàn toàn đi xuyên qua cánh cửa (Z = -8.0 vượt qua cánh cửa ở khoảng -5.0)
+            targetCamPos.set(0, -0.15, -8.0);
+            targetLookAt.set(0, -0.15, -12.0);
+
+            // 3. Sau 2.5 giây (để camera bay từ từ, mượt mà đi xuyên qua cửa), chuyển cảnh hẳn sang Stage 3
+            setTimeout(() => {
+              triggerStage3Transition();
+            }, 1000);
           }
         }
       }
@@ -757,7 +785,16 @@ function animate() {
   requestAnimationFrame(animate);
 
   const time = clock.getElapsedTime();
-  const delta = clock.getDelta();
+  const delta = animClock.getDelta(); // Sử dụng animClock chuyên dụng để lấy delta chính xác
+
+  // Cập nhật Animation Mixer của Warehouse
+  const activeMixer = getAnimationMixer();
+  if (activeMixer) {
+    activeMixer.update(delta);
+    if (Math.random() < 0.005) {
+      console.log("WarehouseMixer updating! Delta:", delta, "Mixer time:", activeMixer.time);
+    }
+  }
 
   // Cập nhật hoạt ảnh màn hình laptop (Vẽ canvas động)
   updateScreenTexture(time);
@@ -837,6 +874,10 @@ function animate() {
       logToTerminal(" - Nhấn Mũi Tên Phải (ArrowRight) / PageDown để xem & Highlight tuần tự từng mục trong bảng!", "cyan");
       logToTerminal(" - Có thể bấm phím số 1, 2, 3, 4 để chuyển nhanh trực tiếp đến mục bất kỳ!", "cyan");
     }
+  } else if (systemState === STATE_TRANSITIONING_STAGE3) {
+    const speed = 0.0051; // Giảm tốc độ xuống 0.01 để camera lướt đi siêu chậm và sang trọng
+    camera.position.lerp(targetCamPos, speed);
+    controls.target.lerp(targetLookAt, speed);
   }
 
   if (controls.enabled) {
