@@ -7,9 +7,6 @@
   <title>Mô Hình 3D Data Warehouse DMT </title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Outfit:wght@300;400;500;700&display=swap"
-    rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/svg+xml" href="assets/logo_eb.png">
 
@@ -22,6 +19,8 @@
       }
     }
   </script>
+  <!-- ECharts for Stage 3 Charts -->
+  <script src="https://fastly.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 
 <body>
@@ -116,27 +115,33 @@
       </div>
     </div>
 
+    <!-- Bảng thông tin chi tiết riêng biệt cho Stage 3 -->
+    <div id="stage3-detail-board" class="stage3-detail-panel glass-card hidden">
+      <div class="panel-header-bar">
+        <div class="panel-title-group">
+          <span class="pulse-dot"></span>
+          <h3 id="stage3-detail-title">CHƯA CÓ DỮ LIỆU</h3>
+        </div>
+        <button id="btn-close-stage3-detail" class="btn-icon" title="Đóng">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="panel-content-scroll stage3-detail-layout" style="padding: 24px; flex-grow: 1; display: flex; gap: 32px; flex-direction: row; align-items: stretch; overflow: hidden;">
+        <div class="detail-left-content" style="flex: 1; display: flex; flex-direction: column; justify-content: center; overflow-y: auto;">
+          <p id="stage3-detail-desc" style="font-family: var(--font-ui); font-size: 1.15rem; line-height: 1.8; color: #cbd5e1; margin: 0;"></p>
+        </div>
+        <div class="detail-right-chart" style="flex: 1.5; width: 100%; height: 100%; min-width: 320px; position: relative;">
+          <div id="stage3-chart-container" style="width: 100%; height: 100%;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Giao diện Giai đoạn 3 (Sci-Fi HUD Cards) -->
     <div id="stage3-hud-container" class="stage3-hud-grid hidden">
       <!-- Card 1 (Left) -->
-      <div class="tech-card-phase3">
-        <div class="top-tab"></div>
-        <div class="left-bracket"></div>
-        <div class="right-nodes">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <img src="assets/agentthuthapdulieu_phase3.png" alt="Agent Thu Thập Dữ Liệu" class="tech-card-img-only">
-        <div class="tech-card-detail-overlay">
-          <h4>AGENT THU THẬP DỮ LIỆU</h4>
-          <p>Hệ thống Agent thông minh tự động quét, chuẩn hóa và thu thập dữ liệu đa nguồn từ các chi nhánh và cổng thanh toán theo thời gian thực.</p>
-        </div>
-        <div class="cyber-scanner"></div>
-        <div class="bottom-right-stripes"></div>
-      </div>
-
-      <!-- Card 2 (Middle) -->
       <div class="tech-card-phase3">
         <div class="top-tab"></div>
         <div class="left-bracket"></div>
@@ -154,6 +159,24 @@
         <div class="bottom-right-stripes"></div>
       </div>
 
+      <!-- Card 2 (Middle) -->
+      <div class="tech-card-phase3">
+        <div class="top-tab"></div>
+        <div class="left-bracket"></div>
+        <div class="right-nodes">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <img src="assets/agentthuthapdulieu_phase3.png" alt="Agent Thu Thập Dữ Liệu" class="tech-card-img-only">
+        <div class="tech-card-detail-overlay">
+          <h4>AGENT THU THẬP DỮ LIỆU</h4>
+          <p>Hệ thống Agent thông minh tự động quét, chuẩn hóa và thu thập dữ liệu đa nguồn từ các chi nhánh và cổng thanh toán theo thời gian thực.</p>
+        </div>
+        <div class="cyber-scanner"></div>
+        <div class="bottom-right-stripes"></div>
+      </div>
+
       <!-- Card 3 (Right) -->
       <div class="tech-card-phase3">
         <div class="top-tab"></div>
@@ -165,7 +188,7 @@
         </div>
         <img src="assets/hethongphantich_phase3.png" alt="BI Analysis System" class="tech-card-img-only">
         <div class="tech-card-detail-overlay">
-          <h4>HỆ THỐNG PHÂN TÍCH BI</h4>
+          <h4>HỆ THỐNG PHÂN TÍCH </h4>
           <p>Trực quan hóa dữ liệu hiệu năng cao với các báo cáo phân tích đa chiều (OLAP), hỗ trợ theo dõi chỉ số KPI tức thời.</p>
         </div>
         <div class="cyber-scanner"></div>

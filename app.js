@@ -16,6 +16,8 @@ import {
   getAnimationMixer,
   resetDoorAnimation
 } from './model-viewer.js';
+import { getChartAgentOption } from './chart_agent.js';
+import { getChart2AgentOption } from './chart2_agent.js';
 
 // Các trạng thái của Camera
 const STATE_OVERVIEW = 0;
@@ -39,19 +41,208 @@ let carouselIndex = 1; // Mặc định ở giữa
 let carouselInterval = null;
 let isDetailActive = false;       // Trạng thái mở chi tiết
 let readyToTransition = false;    // Đang chờ click tiếp theo để chuyển slide
+let stage3Chart = null;           // Lưu instance của ECharts
+let stage3ChartType = 'bar';      // Loại biểu đồ hiện tại: 'bar' hoặc 'area'
+let stage3SubStep = 0;            // Trạng thái bước hiện tại (0: đóng, 1: cột, 2: miền, 3: chờ chuyển)
 
 // Hàm cập nhật layout / vị trí Carousel 3D
 function updateStage3Carousel() {
   const cards = document.querySelectorAll('.tech-card-phase3');
   const hudContainer = document.getElementById('stage3-hud-container');
+  const detailBoard = document.getElementById('stage3-detail-board');
+  const detailTitle = document.getElementById('stage3-detail-title');
+  const detailDesc = document.getElementById('stage3-detail-desc');
+
   if (cards.length === 0) return;
 
-  // Cập nhật trạng thái xem chi tiết trên HUD container
-  if (hudContainer) {
+  // Cập nhật trạng thái xem chi tiết trên HUD container và Bảng chi tiết độc lập
+  if (hudContainer && detailBoard) {
     if (isDetailActive) {
       hudContainer.classList.add('detail-viewing');
+      detailBoard.classList.remove('hidden');
+
+      // Đọc thông tin từ thẻ active và ghi vào bảng chi tiết
+      const activeCard = cards[carouselIndex];
+      if (activeCard) {
+        const titleEl = activeCard.querySelector('.tech-card-detail-overlay h4');
+        const descEl = activeCard.querySelector('.tech-card-detail-overlay p');
+        if (titleEl && detailTitle) detailTitle.textContent = titleEl.textContent;
+        if (descEl && detailDesc) detailDesc.textContent = descEl.textContent;
+
+        const chartContainer = document.querySelector('.detail-right-chart');
+        const leftContent = document.querySelector('.detail-left-content');
+
+        if (carouselIndex === 0) {
+          if (chartContainer) chartContainer.style.display = 'block';
+          if (leftContent) leftContent.style.flex = '1';
+
+          // Thay đổi nội dung chi tiết dựa trên loại biểu đồ đang hiển thị
+          if (detailDesc) {
+            if (stage3ChartType === 'bar') {
+              detailDesc.innerHTML = `
+                <ul style="list-style-type: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+                  <li style="font-size: 1.85rem;">Chỉ số CPI là thước đo thể hiện sự đo lường mức giá trung bình của hàng hóa và dịch vụ thiết yếu, và người dùng sử dụng hằng ngày</li>
+                  <li style="font-size: 1.85rem;">Dùng CPI để đánh giá sức mua</li>
+                  <li style="font-size: 1.85rem;">Hạn chế dữ liệu thô chưa được chuẩn hóa gặp phải các nút thắt khiến mô hình khó nhận biết đặc trưng</li>
+                </ul>
+              `;
+            } else {
+              detailDesc.innerHTML = `
+                <ul style="list-style-type: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+                  <li style="font-size: 1.85rem;">Biểu diễn lại dữ liệu theo tốc độ tăng trưởng liên hoàn giúp mô hình không bị rối trước các bước nhảy dữ liệu quá lớn</li>
+                  <li style="font-size: 1.85rem;">Độ chính xác của mô hình đạt 72% với Macro F1-Score (Chỉ số Score xấp sỉ 0.50) với kỹ thuật tối ưu siêu tham số Grid Search</li>
+                </ul>
+              `;
+            }
+          }
+          // Trực quan hóa biểu đồ ECharts cho Agent theo loại đang được chọn ('bar' hoặc 'area')
+          setTimeout(renderAgentChart, 50); // Delay nhẹ để DOM hoàn thành hiển thị
+        } else if (carouselIndex === 2) {
+          if (chartContainer) chartContainer.style.display = 'none';
+          if (leftContent) leftContent.style.flex = '1';
+          if (detailDesc) {
+            detailDesc.innerHTML = `
+              <div class="analysis-flowcharts-container">
+                <!--  Gợi Ý Sản Phẩm -->
+                <div class="flowchart-column">
+                  <h3>Gợi Ý Sản Phẩm</h3>
+                  <div class="beam-node database">Datawarehouse</div>
+                  <div class="beam-connector long-connector">
+                    <svg width="20" height="88" viewBox="0 0 20 88">
+                      <path class="animated-beam-bg" d="M10 0 L10 88" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 88" />
+                    </svg>
+                    <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;"> Làm phẳng</span>
+                  </div>
+                  <div class="beam-node">Tính toán mối liên hệ bằng thuật toán Apriori</div>
+                  <div class="beam-connector long-connector">
+                    <svg width="20" height="88" viewBox="0 0 20 88">
+                      <path class="animated-beam-bg" d="M10 0 L10 88" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 88" />
+                    </svg>
+                    <span class="beam-label" style="font-size: 0.8rem; max-width: 120px;">Tối ưu support và confident</span>
+                  </div>
+                  <div class="beam-node">Tối ưu support và confident -> Sort lại theo confident</div>
+                  <div class="beam-connector long-connector">
+                    <svg width="20" height="88" viewBox="0 0 20 88">
+                      <path class="animated-beam-bg" d="M10 0 L10 88" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 88" />
+                    </svg>
+                    <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;">API</span>
+                  </div>
+                  <div class="beam-node database">Firebase</div>
+                </div>
+
+                <!-- Tối ưu giá -->
+                <div class="flowchart-column" style="min-width: 320px;">
+                  <h3>Tối Ưu Giá</h3>
+                  <div class="nodes-row">
+                    <div class="beam-node">Giá thị trường được cào từ agent</div>
+                    <div class="beam-node">Tính giá bán trung bình trên app</div>
+                  </div>
+                  <div class="flow-merge-container" style="height: 48px;">
+                    <svg width="100%" height="48" viewBox="0 0 300 48" preserveAspectRatio="none">
+                      <path class="animated-beam-bg" d="M 75 0 L 75 48" />
+                      <path class="animated-beam-line color-cyan" d="M 75 0 L 75 48" />
+                      <path class="animated-beam-bg" d="M 225 0 L 225 48" />
+                      <path class="animated-beam-line color-cyan" d="M 225 0 L 225 48" />
+                    </svg>
+                    <span class="beam-label" style="left: 25%; transform: translate(-50%, -50%); top: 50%; font-size: 0.8rem; white-space: nowrap;">Làm sạch, làm đầy</span>
+                  </div>
+                  <div class="nodes-row">
+                    <div class="beam-node">Tổng hợp giá theo mốc 7/30/90 ngày</div>
+                    <div class="beam-node">Tổng hợp giá theo mốc 7/30/90 ngày</div>
+                  </div>
+                  <div class="flow-merge-container" style="height: 48px;">
+                    <svg width="100%" height="48" viewBox="0 0 300 48" preserveAspectRatio="none">
+                      <path class="animated-beam-bg" d="M 75 0 L 75 48" />
+                      <path class="animated-beam-line color-cyan" d="M 75 0 L 75 48" />
+                      <path class="animated-beam-bg" d="M 225 0 L 225 48" />
+                      <path class="animated-beam-line color-cyan" d="M 225 0 L 225 48" />
+                    </svg>
+                  </div>
+                  <div class="nodes-row">
+                    <div class="beam-node">Kết quả 1</div>
+                    <div class="beam-node">Kết quả 2</div>
+                  </div>
+                  
+                  <div class="flow-merge-container" style="height: 50px;">
+                    <svg width="100%" height="50" viewBox="0 0 300 50" preserveAspectRatio="none">
+                      <path class="animated-beam-bg" d="M 75 0 L 150 50" />
+                      <path class="animated-beam-line color-cyan" d="M 75 0 L 150 50" />
+                      <path class="animated-beam-bg" d="M 225 0 L 150 50" />
+                      <path class="animated-beam-line color-cyan" d="M 225 0 L 150 50" />
+                    </svg>
+                  </div>
+                  <div class="beam-node">Tính toán chỉ số biến động thị trường</div>
+                  <div class="beam-connector">
+                    <svg width="20" height="40" viewBox="0 0 20 40">
+                      <path class="animated-beam-bg" d="M10 0 L10 40" />
+                      <path class="animated-beam-line color-cyan" d="M10 0 L10 40" />
+                    </svg>
+                    <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;">Thực hiện so sánh</span>
+                  </div>
+                  <div class="beam-node">Chạy qua thuật toán tối ưu giá</div>
+                  <div class="beam-connector">
+                    <svg width="20" height="40" viewBox="0 0 20 40">
+                      <path class="animated-beam-bg" d="M10 0 L10 40" />
+                      <path class="animated-beam-line color-cyan" d="M10 0 L10 40" />
+                    </svg>
+                  </div>
+                  <div class="beam-node">Trả về trạng thái, giá tối ưu và nhận xét</div>
+                </div>
+
+                <!-- Sơ đồ Hiệu quả kinh doanh -->
+                <div class="flowchart-column">
+                  <h3> Hiệu Quả Kinh Doanh</h3>
+                  <div class="beam-node">Giá thị trường làm tham chiếu</div>
+                  <div class="beam-connector">
+                    <svg width="20" height="40" viewBox="0 0 20 40">
+                      <path class="animated-beam-bg" d="M10 0 L10 40" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    </svg>
+                  </div>
+                  <div class="beam-node">Tính toán doanh thu và số lượng bán ra theo các mốc 1/7/30/365 ngày</div>
+                  <div class="beam-connector">
+                    <svg width="20" height="40" viewBox="0 0 20 40">
+                      <path class="animated-beam-bg" d="M10 0 L10 40" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    </svg>
+                  </div>
+                  <div class="beam-node">So sánh tổng quan cửa hàng</div>
+                  <div class="beam-connector">
+                    <svg width="20" height="40" viewBox="0 0 20 40">
+                      <path class="animated-beam-bg" d="M10 0 L10 40" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    </svg>
+                  </div>
+                  <div class="beam-node">Quy đổi thành tỉ lệ tăng trưởng</div>
+                  <div class="beam-connector">
+                    <svg width="20" height="40" viewBox="0 0 20 40">
+                      <path class="animated-beam-bg" d="M10 0 L10 40" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    </svg>
+                  </div>
+                  <div class="beam-node">Tính % tăng doanh thu và sản lượng theo các mốc 1/7/30/365 ngày</div>
+                  <div class="beam-connector">
+                    <svg width="20" height="40" viewBox="0 0 20 40">
+                      <path class="animated-beam-bg" d="M10 0 L10 40" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    </svg>
+                  </div>
+                  <div class="beam-node">Đánh giá hiệu quả cửa hàng so với thị trường</div>
+                </div>
+              </div>
+            `;
+          }
+        } else {
+          if (chartContainer) chartContainer.style.display = 'none';
+          if (leftContent) leftContent.style.flex = '1'; // Cho phép text hiển thị rộng rãi
+        }
+      }
     } else {
       hudContainer.classList.remove('detail-viewing');
+      detailBoard.classList.add('hidden');
     }
   }
 
@@ -84,6 +275,57 @@ function stopCarouselAutoplay() {
   // Không cần dọn dẹp interval vì đã tắt autoplay
 }
 
+// Hàm tải dữ liệu CSV và vẽ biểu đồ ECharts cho Agent (Chỉ số CPI Việt Nam 20 tháng gần nhất)
+async function renderAgentChart() {
+  const container = document.getElementById('stage3-chart-container');
+  if (!container) return;
+
+  if (stage3Chart) {
+    stage3Chart.dispose();
+    stage3Chart = null;
+  }
+
+  try {
+    const response = await fetch('data/vietnam_cpi_10years_labeled.csv');
+    if (!response.ok) throw new Error("Không thể fetch file CSV");
+
+    const csvText = await response.text();
+    const lines = csvText.trim().split('\n');
+    const dates = [];
+    const values = [];
+    const monthlyReturns = [];
+
+    const dataLines = lines.slice(1).filter(line => line.trim().length > 0);
+    dataLines.forEach(line => {
+      const parts = line.split(',');
+      if (parts.length >= 6) {
+        dates.push(parts[0].trim()); // Cột Date (Năm-Tháng)
+        values.push(parseFloat(parts[3].trim())); // Cột CPI_Index
+        const rawReturn = parts[5].trim();
+        monthlyReturns.push(rawReturn ? parseFloat(rawReturn) : 0); // Cột Monthly_Return
+      } else if (parts.length >= 4) {
+        dates.push(parts[0].trim());
+        values.push(parseFloat(parts[3].trim()));
+        monthlyReturns.push(0);
+      }
+    });
+
+    stage3Chart = echarts.init(container, 'dark');
+
+    let option;
+    if (stage3ChartType === 'bar') {
+      option = getChartAgentOption(dates, values, echarts);
+    } else {
+      option = getChart2AgentOption(dates, monthlyReturns, echarts);
+    }
+
+    stage3Chart.setOption(option);
+  } catch (error) {
+    console.error("Lỗi khi load dữ liệu CPI:", error);
+    container.innerHTML = `<div style="color: #ef4444; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 0.9rem;">Lỗi tải biểu đồ chỉ số CPI.</div>`;
+  }
+}
+
 // Đăng ký sự kiện tương tác chuột cho các thẻ trong Carousel Stage 3
 function setupStage3CarouselEvents() {
   const cards = document.querySelectorAll('.tech-card-phase3');
@@ -95,18 +337,59 @@ function setupStage3CarouselEvents() {
         carouselIndex = idx;
         isDetailActive = false;
         readyToTransition = false;
+        stage3SubStep = 0;
+        stage3ChartType = 'bar';
         updateStage3Carousel();
         logToTerminal(`Carousel: Đã chuyển sang ảnh ${idx + 1}`, "cyan");
       } else {
-        // Click vào thẻ chính thì toggle xem chi tiết
+        // Click vào thẻ chính thì chạy chuỗi bước tương tự phím ArrowRight
         e.stopPropagation();
-        isDetailActive = !isDetailActive;
-        readyToTransition = !isDetailActive; // Nếu vừa đóng chi tiết, lần click/phím tiếp theo sẽ sẵn sàng chuyển slide
-        updateStage3Carousel();
-        logToTerminal(isDetailActive ? `Carousel: Đang xem chi tiết ảnh ${idx + 1}` : `Carousel: Đã đóng chi tiết ảnh ${idx + 1}`, "cyan");
+        if (stage3SubStep === 0) {
+          stage3SubStep = 1;
+          isDetailActive = true;
+          stage3ChartType = 'bar';
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
+        } else if (stage3SubStep === 1) {
+          if (carouselIndex === 0) {
+            stage3SubStep = 2;
+            stage3ChartType = 'area';
+            updateStage3Carousel();
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ miền)`, "cyan");
+          } else {
+            stage3SubStep = 3;
+            isDetailActive = false;
+            readyToTransition = true;
+            updateStage3Carousel();
+            logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
+          }
+        } else if (stage3SubStep === 2) {
+          stage3SubStep = 3;
+          isDetailActive = false;
+          readyToTransition = true;
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
+        } else if (stage3SubStep === 3) {
+          stage3SubStep = 0;
+          readyToTransition = false;
+          updateStage3Carousel();
+        }
       }
     });
   });
+
+  // Sự kiện nút đóng bảng chi tiết độc lập
+  const closeBtn = document.getElementById('btn-close-stage3-detail');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isDetailActive = false;
+      readyToTransition = true;
+      stage3SubStep = 3;
+      updateStage3Carousel();
+      logToTerminal("Carousel: Đã đóng chi tiết bảng", "cyan");
+    });
+  }
 }
 
 // Biến hỗ trợ phân biệt Click và Drag (để xoay không bị thoát cảnh)
@@ -516,6 +799,8 @@ function triggerStage2From3() {
   stopCarouselAutoplay();
   isDetailActive = false;
   readyToTransition = false;
+  stage3SubStep = 0;
+  stage3ChartType = 'bar';
   const stage3Hud = document.getElementById('stage3-hud-container');
   if (stage3Hud) {
     stage3Hud.classList.add('hidden');
@@ -754,19 +1039,38 @@ function setupEvents() {
       if (currentStage === STAGE_3_SPACE) {
         e.preventDefault();
         e.stopPropagation();
-        if (!isDetailActive && !readyToTransition) {
-          // Lần 1: Mở nội dung chi tiết
+        if (stage3SubStep === 0) {
+          // Lần 1: Mở nội dung chi tiết (biểu đồ cột)
+          stage3SubStep = 1;
           isDetailActive = true;
+          stage3ChartType = 'bar';
           updateStage3Carousel();
-          logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1}`, "cyan");
-        } else if (isDetailActive) {
-          // Lần 2: Đóng nội dung chi tiết
+          logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
+        } else if (stage3SubStep === 1) {
+          if (carouselIndex === 0) {
+            // Lần 2 (đối với Agent): Chuyển sang biểu đồ miền (area)
+            stage3SubStep = 2;
+            stage3ChartType = 'area';
+            updateStage3Carousel();
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ miền)`, "cyan");
+          } else {
+            // Với các thẻ khác: Đóng chi tiết
+            stage3SubStep = 3;
+            isDetailActive = false;
+            readyToTransition = true;
+            updateStage3Carousel();
+            logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
+          }
+        } else if (stage3SubStep === 2) {
+          // Lần 3 (đối với Agent): Đóng chi tiết
+          stage3SubStep = 3;
           isDetailActive = false;
           readyToTransition = true;
           updateStage3Carousel();
           logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
-        } else if (readyToTransition) {
-          // Lần 3: Chuyển carousel
+        } else if (stage3SubStep === 3) {
+          // Lần cuối: Chuyển carousel
+          stage3SubStep = 0;
           readyToTransition = false;
           carouselIndex = (carouselIndex + 1) % 3;
           updateStage3Carousel();
@@ -818,7 +1122,7 @@ function setupEvents() {
           } else if (currentSlide === 7) {
             e.preventDefault();
             e.stopPropagation();
- 
+
             // 1. Chạy hoạt ảnh mở cửa từ GLB
             const hasAnim = playDoorOpenAnimation();
             if (hasAnim) {
@@ -826,15 +1130,15 @@ function setupEvents() {
             } else {
               logToTerminal("[ANIMATION] Tiến hành bay camera qua cổng dữ liệu...", "warning");
             }
- 
+
             // 2. Kích hoạt camera bay tiến thẳng vào cửa
             systemState = STATE_TRANSITIONING_STAGE3;
             controls.enabled = false;
- 
+
             // Tọa độ đích của camera: Bay hoàn toàn đi xuyên qua cánh cửa (Z = -8.0 vượt qua cánh cửa ở khoảng -5.0)
             targetCamPos.set(0, -0.15, -8.0);
             targetLookAt.set(0, -0.15, -12.0);
- 
+
             // 3. Sau 2.5 giây (để camera bay từ từ, mượt mà đi xuyên qua cửa), chuyển cảnh hẳn sang Stage 3
             setTimeout(() => {
               triggerStage3Transition();
@@ -846,12 +1150,43 @@ function setupEvents() {
       if (currentStage === STAGE_3_SPACE) {
         e.preventDefault();
         e.stopPropagation();
-        // Reset chi tiết khi bấm phím lùi slide
-        isDetailActive = false;
-        readyToTransition = false;
-        carouselIndex = (carouselIndex - 1 + 3) % 3;
-        updateStage3Carousel();
-        logToTerminal(`Carousel: Đã chuyển sang ảnh ${carouselIndex + 1}`, "cyan");
+        if (stage3SubStep === 1) {
+          // Từ Chi tiết (Bar chart) quay về Đóng chi tiết
+          stage3SubStep = 0;
+          isDetailActive = false;
+          readyToTransition = false;
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
+        } else if (stage3SubStep === 2) {
+          // Từ Biểu đồ Miền quay về Biểu đồ Cột (chỉ áp dụng cho slide 0)
+          stage3SubStep = 1;
+          stage3ChartType = 'bar';
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Quay lại xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
+        } else if (stage3SubStep === 3) {
+          // Từ trạng thái chờ chuyển quay lại Biểu đồ Miền (nếu index 0) hoặc Biểu đồ Cột (nếu index khác)
+          if (carouselIndex === 0) {
+            stage3SubStep = 2;
+            isDetailActive = true;
+            readyToTransition = false;
+            stage3ChartType = 'area';
+          } else {
+            stage3SubStep = 1;
+            isDetailActive = true;
+            readyToTransition = false;
+          }
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Quay lại xem chi tiết ảnh ${carouselIndex + 1}`, "cyan");
+        } else if (stage3SubStep === 0) {
+          // Khi đang ở trạng thái đóng hoàn toàn mới chuyển slide lùi lại
+          carouselIndex = (carouselIndex - 1 + 3) % 3;
+          stage3SubStep = 0;
+          isDetailActive = false;
+          readyToTransition = false;
+          stage3ChartType = 'bar';
+          updateStage3Carousel();
+          logToTerminal(`Carousel: Đã chuyển sang ảnh ${carouselIndex + 1}`, "cyan");
+        }
       } else if (currentStage === STAGE_2_WAREHOUSE) {
         const infoPanel = document.getElementById('dw-info-panel');
         const items = document.querySelectorAll('.comparison-item');
