@@ -179,7 +179,7 @@ function updateStage3Carousel() {
                 <div class="flowchart-column" style="min-width: 320px;">
                   <h3>Tối Ưu Giá</h3>
                   <div class="nodes-row">
-                    <div class="beam-node">Giá thị trường được cào từ agent</div>
+                    <div class="beam-node">Giá thị trường được agent thu thập</div>
                     <div class="beam-node">Tính giá bán trung bình trên app</div>
                   </div>
                   <div class="flow-merge-container" style="height: 48px;">
