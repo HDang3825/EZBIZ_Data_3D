@@ -54,11 +54,21 @@ function updateStage3Carousel() {
   const detailBoard = document.getElementById('stage3-detail-board');
   const detailTitle = document.getElementById('stage3-detail-title');
   const detailDesc = document.getElementById('stage3-detail-desc');
+  const isOpeningDetail = detailBoard ? detailBoard.classList.contains('hidden') : false;
 
   // Hủy viewer robot cũ nếu chuyển sang tab khác hoặc đóng chi tiết
   if ((carouselIndex !== 1 || !isDetailActive) && activeRobotViewer) {
     activeRobotViewer.destroy();
     activeRobotViewer = null;
+  }
+
+  // Hủy biểu đồ ECharts cũ nếu chuyển sang tab khác hoặc đóng chi tiết
+  if ((carouselIndex !== 0 || !isDetailActive) && stage3Chart) {
+    if (stage3Chart._resizeObserver) {
+      stage3Chart._resizeObserver.disconnect();
+    }
+    stage3Chart.dispose();
+    stage3Chart = null;
   }
 
   if (cards.length === 0) return;
@@ -117,12 +127,12 @@ function updateStage3Carousel() {
             }
           }
           // Trực quan hóa biểu đồ ECharts cho Agent theo loại đang được chọn ('bar' hoặc 'area')
-          setTimeout(renderAgentChart, 50); // Delay nhẹ để DOM hoàn thành hiển thị
+          setTimeout(renderAgentChart, isOpeningDetail ? 250 : 50); // Delay 500ms nếu mở mới để hoàn thành transition và chạy animation mượt mà
         } else if (carouselIndex === 1) {
           if (chartContainer) {
             chartContainer.style.display = 'block';
           }
-          
+
           if (stage3SubStep === 1) {
             // Bước 1: Robot ở trung tâm (đừng chạy animation), ẩn video.
             if (leftContent) leftContent.style.display = 'none';
@@ -138,7 +148,7 @@ function updateStage3Carousel() {
               detailDesc.style.height = '';
               detailDesc.style.display = '';
               detailDesc.style.margin = '';
-              detailDesc.innerHTML = ''; 
+              detailDesc.innerHTML = '';
             }
 
             if (!activeRobotViewer) {
@@ -392,6 +402,9 @@ async function renderAgentChart() {
   if (!container) return;
 
   if (stage3Chart) {
+    if (stage3Chart._resizeObserver) {
+      stage3Chart._resizeObserver.disconnect();
+    }
     stage3Chart.dispose();
     stage3Chart = null;
   }
@@ -431,6 +444,23 @@ async function renderAgentChart() {
     }
 
     stage3Chart.setOption(option);
+
+    // Tự động cập nhật kích thước biểu đồ khi container thay đổi kích thước
+    let isFirstResize = true;
+    const chartResizeObserver = new ResizeObserver(() => {
+      if (isFirstResize) {
+        isFirstResize = false;
+        // Bỏ qua lần gọi đầu tiên nếu container đã có kích thước sẵn để giữ nguyên hiệu ứng vẽ (animation) ban đầu của ECharts
+        if (container.clientWidth > 0 && container.clientHeight > 0) {
+          return;
+        }
+      }
+      if (stage3Chart) {
+        stage3Chart.resize();
+      }
+    });
+    chartResizeObserver.observe(container);
+    stage3Chart._resizeObserver = chartResizeObserver;
   } catch (error) {
     console.error("Lỗi khi load dữ liệu CPI:", error);
     container.innerHTML = `<div style="color: #ef4444; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 0.9rem;">Lỗi tải biểu đồ chỉ số CPI.</div>`;
