@@ -14,7 +14,8 @@ import {
   getScreenCenterWorld,
   playDoorOpenAnimation,
   getAnimationMixer,
-  resetDoorAnimation
+  resetDoorAnimation,
+  initRobotViewer
 } from './model-viewer.js';
 import { getChartAgentOption } from './chart_agent.js';
 import { getChart2AgentOption } from './chart2_agent.js';
@@ -44,6 +45,7 @@ let readyToTransition = false;    // Đang chờ click tiếp theo để chuyể
 let stage3Chart = null;           // Lưu instance của ECharts
 let stage3ChartType = 'bar';      // Loại biểu đồ hiện tại: 'bar' hoặc 'area'
 let stage3SubStep = 0;            // Trạng thái bước hiện tại (0: đóng, 1: cột, 2: miền, 3: chờ chuyển)
+let activeRobotViewer = null;     // Quản lý trình xem 3D của robot Doraemon
 
 // Hàm cập nhật layout / vị trí Carousel 3D
 function updateStage3Carousel() {
@@ -52,6 +54,12 @@ function updateStage3Carousel() {
   const detailBoard = document.getElementById('stage3-detail-board');
   const detailTitle = document.getElementById('stage3-detail-title');
   const detailDesc = document.getElementById('stage3-detail-desc');
+
+  // Hủy viewer robot cũ nếu chuyển sang tab khác hoặc đóng chi tiết
+  if ((carouselIndex !== 1 || !isDetailActive) && activeRobotViewer) {
+    activeRobotViewer.destroy();
+    activeRobotViewer = null;
+  }
 
   if (cards.length === 0) return;
 
@@ -73,7 +81,10 @@ function updateStage3Carousel() {
         const leftContent = document.querySelector('.detail-left-content');
 
         if (carouselIndex === 0) {
-          if (chartContainer) chartContainer.style.display = 'block';
+          if (chartContainer) {
+            chartContainer.style.display = 'block';
+            chartContainer.style.flex = '1.5';
+          }
           if (leftContent) leftContent.style.flex = '1';
 
           // Thay đổi nội dung chi tiết dựa trên loại biểu đồ đang hiển thị
@@ -97,8 +108,39 @@ function updateStage3Carousel() {
           }
           // Trực quan hóa biểu đồ ECharts cho Agent theo loại đang được chọn ('bar' hoặc 'area')
           setTimeout(renderAgentChart, 50); // Delay nhẹ để DOM hoàn thành hiển thị
+        } else if (carouselIndex === 1) {
+          if (chartContainer) {
+            chartContainer.style.display = 'block';
+            chartContainer.style.flex = '4';
+          }
+          if (leftContent) leftContent.style.flex = '6';
+
+          if (detailDesc) {
+            detailDesc.innerHTML = `
+              <div style="font-family: var(--font-ui); font-size: 1.15rem; line-height: 1.8; color: #cbd5e1; display: flex; flex-direction: column; gap: 16px;">
+                <h4 style="font-family: var(--font-tech); color: #00f2fe; font-size: 1.6rem; margin-bottom: 12px; font-weight: bold; border-left: 4px solid #00f2fe; padding-left: 12px; letter-spacing: 1px;">AGENT THU THẬP DỮ LIỆU TỰ ĐỘNG</h4>
+                <ul style="list-style-type: disc; padding-left: 24px; display: flex; flex-direction: column; gap: 16px;">
+                  <li style="font-size: 1.25rem;"><strong style="color: #ffffff;">Tự động quét & thu thập:</strong> Quét dữ liệu đa nguồn từ các chi nhánh, POS và cổng thanh toán trực tuyến theo thời gian thực.</li>
+                  <li style="font-size: 1.25rem;"><strong style="color: #ffffff;">Chuẩn hóa & Làm sạch dữ liệu:</strong> Xử lý các điểm dữ liệu thô, loại bỏ các bản ghi trùng lặp và làm sạch nhiễu trước khi tải vào kho dữ liệu.</li>
+                  <li style="font-size: 1.25rem;"><strong style="color: #ffffff;">Vận hành liên tục 24/7:</strong> Hệ thống Agent chạy ngầm, tự động kết nối lại và đồng bộ hóa bù đắp khi có sự cố mạng xảy ra.</li>
+                </ul>
+              </div>
+            `;
+          }
+
+          if (!activeRobotViewer) {
+            setTimeout(() => {
+              const canvasContainer = document.getElementById('stage3-chart-container');
+              if (canvasContainer) {
+                activeRobotViewer = initRobotViewer(canvasContainer);
+              }
+            }, 50);
+          }
         } else if (carouselIndex === 2) {
-          if (chartContainer) chartContainer.style.display = 'none';
+          if (chartContainer) {
+            chartContainer.style.display = 'none';
+            chartContainer.style.flex = '1.5';
+          }
           if (leftContent) leftContent.style.flex = '1';
           if (detailDesc) {
             detailDesc.innerHTML = `
@@ -108,25 +150,25 @@ function updateStage3Carousel() {
                   <h3>Gợi Ý Sản Phẩm</h3>
                   <div class="beam-node database">Datawarehouse</div>
                   <div class="beam-connector long-connector">
-                    <svg width="20" height="88" viewBox="0 0 20 88">
-                      <path class="animated-beam-bg" d="M10 0 L10 88" />
-                      <path class="animated-beam-line color-pink" d="M10 0 L10 88" />
+                    <svg width="20" height="104" viewBox="0 0 20 104">
+                      <path class="animated-beam-bg" d="M10 0 L10 104" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 104" />
                     </svg>
                     <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;"> Làm phẳng</span>
                   </div>
                   <div class="beam-node">Tính toán mối liên hệ bằng thuật toán Apriori</div>
                   <div class="beam-connector long-connector">
-                    <svg width="20" height="88" viewBox="0 0 20 88">
-                      <path class="animated-beam-bg" d="M10 0 L10 88" />
-                      <path class="animated-beam-line color-pink" d="M10 0 L10 88" />
+                    <svg width="20" height="104" viewBox="0 0 20 104">
+                      <path class="animated-beam-bg" d="M10 0 L10 104" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 104" />
                     </svg>
                     <span class="beam-label" style="font-size: 0.8rem; max-width: 120px;">Tối ưu support và confident</span>
                   </div>
-                  <div class="beam-node">Tối ưu support và confident -> Sort lại theo confident</div>
+                  <div class="beam-node">Sort lại theo confident</div>
                   <div class="beam-connector long-connector">
-                    <svg width="20" height="88" viewBox="0 0 20 88">
-                      <path class="animated-beam-bg" d="M10 0 L10 88" />
-                      <path class="animated-beam-line color-pink" d="M10 0 L10 88" />
+                    <svg width="20" height="104" viewBox="0 0 20 104">
+                      <path class="animated-beam-bg" d="M10 0 L10 104" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 104" />
                     </svg>
                     <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;">API</span>
                   </div>
@@ -941,6 +983,80 @@ function setupEvents() {
             logToTerminal(`🔍 Bỏ chọn mục ${e.key}`, "warning");
           }
         }
+        return;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // TÍNH NĂNG ĐIỀU CHỈNH VỊ TRÍ ROBOT DORAEMON (PHASE 3) THEO YÊU CẦU CỦA USER
+    // -------------------------------------------------------------
+    if (activeRobotViewer && activeRobotViewer.getModel && activeRobotViewer.getModel()) {
+      const robot = activeRobotViewer.getModel();
+      const step = e.shiftKey ? 0.01 : 0.05; // Giữ Shift để dịch chuyển tinh tế hơn
+      const rotStep = e.shiftKey ? 0.01 : 0.05;
+      const scaleStep = e.shiftKey ? 0.005 : 0.02;
+      let adjusted = false;
+
+      const keyLower = e.key.toLowerCase();
+      if (keyLower === 'j') {
+        robot.position.x -= step;
+        adjusted = true;
+      } else if (keyLower === 'l') {
+        robot.position.x += step;
+        adjusted = true;
+      } else if (keyLower === 'i') {
+        robot.position.y += step;
+        adjusted = true;
+      } else if (keyLower === 'k') {
+        robot.position.y -= step;
+        adjusted = true;
+      } else if (keyLower === 'u') {
+        robot.position.z -= step;
+        adjusted = true;
+      } else if (keyLower === 'o') {
+        robot.position.z += step;
+        adjusted = true;
+      } else if (keyLower === 'y') {
+        robot.rotation.y += rotStep;
+        adjusted = true;
+      } else if (keyLower === 'h') {
+        robot.rotation.y -= rotStep;
+        adjusted = true;
+      } else if (keyLower === 't') {
+        robot.rotation.x += rotStep;
+        adjusted = true;
+      } else if (keyLower === 'g') {
+        robot.rotation.x -= rotStep;
+        adjusted = true;
+      } else if (e.key === '[') {
+        robot.scale.addScalar(-scaleStep);
+        adjusted = true;
+      } else if (e.key === ']') {
+        robot.scale.addScalar(scaleStep);
+        adjusted = true;
+      }
+
+      if (adjusted) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const posText = `Pos: (${robot.position.x.toFixed(4)}, ${robot.position.y.toFixed(4)}, ${robot.position.z.toFixed(4)})`;
+        const rotText = `Rot: (${robot.rotation.x.toFixed(4)}, ${robot.rotation.y.toFixed(4)}, ${robot.rotation.z.toFixed(4)})`;
+        const scaleText = `Scale: ${robot.scale.x.toFixed(4)}`;
+
+        console.clear();
+        console.log(`%c[ADJUSTMENT] CẤU HÌNH ROBOT DORAEMON MỚI:`, "color: #ff00ff; font-weight: bold; font-size: 14px;");
+        console.log(`Copy đoạn code bên dưới và thay thế vào model-viewer.js:`);
+        console.log(`%c----------------------------------------------------`, "color: #888;");
+        console.log(`robotModel.position.set(${robot.position.x.toFixed(4)}, ${robot.position.y.toFixed(4)}, ${robot.position.z.toFixed(4)});`);
+        console.log(`robotModel.rotation.y = ${robot.rotation.y.toFixed(4)};`);
+        if (Math.abs(robot.rotation.x) > 0.001) {
+          console.log(`robotModel.rotation.x = ${robot.rotation.x.toFixed(4)};`);
+        }
+        console.log(`robotModel.scale.setScalar(${(robot.scale.x).toFixed(4)});`);
+        console.log(`%c----------------------------------------------------`, "color: #888;");
+
+        logToTerminal(`📐 Robot: ${posText} | ${rotText} | ${scaleText}`, "cyan");
         return;
       }
     }

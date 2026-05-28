@@ -1303,9 +1303,9 @@ h2 {
 
 /* Long Connector for Product Recommendation Flowchart */
 .long-connector {
-  height: 88px !important;
+  height: 120px !important;
 }
 
 .long-connector svg {
-  height: 88px !important;
+  height: 120px !important;
 }

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // Các biến trạng thái
 let laptopModel = null;
@@ -396,3 +397,198 @@ export function resetDoorAnimation() {
     warehouseMixer.stopAllAction(); // Đảm bảo mọi mesh được reset hoàn toàn về vị trí ban đầu
   }
 }
+
+// Khởi tạo trình xem 3D cho robot Doraemon (doraemon.glb)
+export function initRobotViewer(container) {
+  // Clear container
+  container.innerHTML = '';
+  
+  const width = container.clientWidth || 320;
+  const height = container.clientHeight || 240;
+
+  // Scene
+  const scene = new THREE.Scene();
+  scene.background = null; // Trong suốt để hiển thị nền glassmorphism
+
+  // Tạo môi trường phản xạ (Environment Map) từ "ice_river" để tạo bóng phản chiếu kim loại cho robot
+  const cubeLoader = new THREE.CubeTextureLoader();
+  cubeLoader.setCrossOrigin('anonymous');
+  const envTexture = cubeLoader.load([
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/posx.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/negx.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/posy.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/negy.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/posz.jpg',
+    'https://raw.githubusercontent.com/kovacsv/Online3DViewer/master/website/assets/envmaps/ice_river/negz.jpg'
+  ]);
+  scene.environment = envTexture;
+
+  // Camera
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+  camera.position.set(0, 1.2, 3.8);
+
+  // Renderer
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+
+  // Controls
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.maxPolarAngle = Math.PI / 2 + 0.1; // Hơi thấp dưới chân đế một chút
+  controls.minDistance = 1.5;
+  controls.maxDistance = 10;
+  controls.target.set(0, 0.6, 0);
+
+  // Ánh sáng (Sci-Fi Lights)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Ánh sáng môi trường đều màu sáng
+  scene.add(ambientLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  dirLight.position.set(5, 8, 5);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.width = 1024;
+  dirLight.shadow.mapSize.height = 1024;
+  scene.add(dirLight);
+
+  // Ánh sáng phụ dịu nhẹ (Dùng DirectionalLight thay thế PointLight để phân bổ ánh sáng đều, tránh tạo đốm sáng tròn phản chiếu trên bề mặt bóng)
+  const fillLight1 = new THREE.DirectionalLight(0x00f2fe, 0.8);
+  fillLight1.position.set(-6, 3, 4);
+  scene.add(fillLight1);
+
+  const fillLight2 = new THREE.DirectionalLight(0xdb2777, 0.4);
+  fillLight2.position.set(6, 2, -4);
+  scene.add(fillLight2);
+
+  // Loader
+  const loader = new GLTFLoader();
+  let mixer = null;
+  const clock = new THREE.Clock();
+  let robotModel = null;
+  let reqId = null;
+  let isDestroyed = false;
+
+  loader.load(
+    'doraemon.glb',
+    (gltf) => {
+      if (isDestroyed) return;
+      
+      robotModel = gltf.scene;
+      
+      // Tính toán Bounding Box để tự động căn chỉnh tỷ lệ và định vị
+      const box = new THREE.Box3().setFromObject(robotModel);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      
+      // Đặt tâm của mô hình về (0, 0, 0) cục bộ
+      robotModel.position.x += (robotModel.position.x - center.x);
+      robotModel.position.y += (robotModel.position.y - box.min.y); // Đứng trên mặt sàn (y=0)
+      robotModel.position.z += (robotModel.position.z - center.z);
+
+      // Tự động scale để mô hình cao tầm 1.6 đơn vị
+      const targetHeight = 1.6;
+      const scaleFactor = targetHeight / size.y;
+      robotModel.scale.setScalar(scaleFactor);
+
+      // Thiết lập các thông số căn chỉnh mặc định do người dùng tùy chỉnh
+      robotModel.position.set(0.0000, -0.4200, -0.0250);
+      robotModel.rotation.y = 0.0000;
+      robotModel.scale.setScalar(0.4806);
+      
+      // Đổ bóng cho tất cả mesh
+      robotModel.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          if (child.material) {
+            child.material.roughness = Math.min(child.material.roughness, 0.5);
+            child.material.metalness = Math.max(child.material.metalness, 0.3);
+          }
+        }
+      });
+
+      scene.add(robotModel);
+
+      // Bật Animation
+      if (gltf.animations && gltf.animations.length > 0) {
+        mixer = new THREE.AnimationMixer(robotModel);
+        gltf.animations.forEach((clip) => {
+          const action = mixer.clipAction(clip);
+          action.play();
+        });
+      }
+    },
+    undefined,
+    (err) => {
+      console.error("Lỗi khi tải mô hình Doraemon:", err);
+      container.innerHTML = `<div style="color: #ef4444; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 0.9rem;">Lỗi tải mô hình 3D.</div>`;
+    }
+  );
+
+  // Animation Loop
+  function animate() {
+    if (isDestroyed) return;
+    reqId = requestAnimationFrame(animate);
+
+    const delta = clock.getDelta();
+    if (mixer) mixer.update(delta);
+    if (controls) controls.update();
+    
+    // Tự động xoay nhẹ mô hình
+    if (robotModel && !controls.state === -1) {
+      robotModel.rotation.y += 0.003;
+    }
+
+    renderer.render(scene, camera);
+  }
+  
+  animate();
+
+  // Resize Handler
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (let entry of entries) {
+      const w = entry.contentRect.width || container.clientWidth;
+      const h = entry.contentRect.height || container.clientHeight;
+      if (renderer && camera) {
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+    }
+  });
+  resizeObserver.observe(container);
+
+  return {
+    getModel: () => robotModel,
+    destroy: () => {
+      isDestroyed = true;
+      resizeObserver.disconnect();
+      if (reqId) cancelAnimationFrame(reqId);
+      if (controls) controls.dispose();
+      if (envTexture) envTexture.dispose();
+      if (renderer) {
+        renderer.dispose();
+        if (renderer.domElement && renderer.domElement.parentNode) {
+          renderer.domElement.parentNode.removeChild(renderer.domElement);
+        }
+      }
+      scene.traverse((object) => {
+        if (object.isMesh) {
+          if (object.geometry) object.geometry.dispose();
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach((mat) => { if (mat.dispose) mat.dispose(); });
+            } else {
+              if (object.material.dispose) object.material.dispose();
+            }
+          }
+        }
+      });
+    }
+  };
+}
+
