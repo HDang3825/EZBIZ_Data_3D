@@ -148,7 +148,7 @@ function updateStage3Carousel() {
                 <!--  Gợi Ý Sản Phẩm -->
                 <div class="flowchart-column">
                   <h3>Gợi Ý Sản Phẩm</h3>
-                  <div class="beam-node database">Datawarehouse</div>
+                  <div class="beam-node database">Data Warehouse</div>
                   <div class="beam-connector long-connector">
                     <svg width="20" height="104" viewBox="0 0 20 104">
                       <path class="animated-beam-bg" d="M10 0 L10 104" />
