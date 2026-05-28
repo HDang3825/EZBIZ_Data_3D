@@ -92,7 +92,7 @@ function updateStage3Carousel() {
             if (stage3ChartType === 'bar') {
               detailDesc.innerHTML = `
                 <ul style="list-style-type: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 12px; text-align: left;">
-                  <li style="font-size: 1.85rem;">Chỉ số CPI là thước đo thể hiện sự đo lường mức giá trung bình của hàng hóa và dịch vụ thiết yếu, và người dùng sử dụng hằng ngày</li>
+                  <li style="font-size: 1.85rem;">Chỉ số CPI là thước đo thể hiện sự đo lường mức giá trung bình của hàng hóa và dịch vụ thiết yếu mà người dùng sử dụng hằng ngày</li>
                   <li style="font-size: 1.85rem;">Dùng CPI để đánh giá sức mua</li>
                   <li style="font-size: 1.85rem;">Hạn chế dữ liệu thô chưa được chuẩn hóa gặp phải các nút thắt khiến mô hình khó nhận biết đặc trưng</li>
                 </ul>
@@ -101,6 +101,7 @@ function updateStage3Carousel() {
               detailDesc.innerHTML = `
                 <ul style="list-style-type: disc; padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 12px; text-align: left;">
                   <li style="font-size: 1.85rem;">Biểu diễn lại dữ liệu theo tốc độ tăng trưởng liên hoàn giúp mô hình không bị rối trước các bước nhảy dữ liệu quá lớn</li>
+                  <li style="font-size: 1.85rem;">Sử dụng mô hình GRU với tập dữ liệu không quá lớn nhằm đảm bảo khả năng học của mô hình (Được trích dẫn từ bài báo: Comparing Bitcoin’s Prediction Model Using GRU) </li>
                   <li style="font-size: 1.85rem;">Độ chính xác của mô hình đạt 72% với Macro F1-Score (Chỉ số Score xấp sỉ 0.50) với kỹ thuật tối ưu siêu tham số Grid Search</li>
                 </ul>
               `;
