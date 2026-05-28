@@ -402,7 +402,7 @@ export function resetDoorAnimation() {
 export function initRobotViewer(container) {
   // Clear container
   container.innerHTML = '';
-  
+
   const width = container.clientWidth || 320;
   const height = container.clientHeight || 240;
 
@@ -467,23 +467,25 @@ export function initRobotViewer(container) {
   // Loader
   const loader = new GLTFLoader();
   let mixer = null;
+  const actions = [];
   const clock = new THREE.Clock();
   let robotModel = null;
   let reqId = null;
   let isDestroyed = false;
+  let currentStep = 1;
 
   loader.load(
-    'doraemon.glb',
+    'ran.glb',
     (gltf) => {
       if (isDestroyed) return;
-      
+
       robotModel = gltf.scene;
-      
+
       // Tính toán Bounding Box để tự động căn chỉnh tỷ lệ và định vị
       const box = new THREE.Box3().setFromObject(robotModel);
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
-      
+
       // Đặt tâm của mô hình về (0, 0, 0) cục bộ
       robotModel.position.x += (robotModel.position.x - center.x);
       robotModel.position.y += (robotModel.position.y - box.min.y); // Đứng trên mặt sàn (y=0)
@@ -494,37 +496,55 @@ export function initRobotViewer(container) {
       const scaleFactor = targetHeight / size.y;
       robotModel.scale.setScalar(scaleFactor);
 
-      // Thiết lập các thông số căn chỉnh mặc định do người dùng tùy chỉnh
-      robotModel.position.set(0.0000, -0.4200, -0.0250);
-      robotModel.rotation.y = 0.0000;
-      robotModel.scale.setScalar(0.4806);
-      
+      // Thiết lập vị trí, xoay, tỷ lệ theo bước hiện tại
+      if (currentStep === 1) {
+        robotModel.position.set(0.0000, -0.4200, -0.0250);
+        robotModel.rotation.set(0, 0, 0);
+        robotModel.scale.setScalar(0.4806);
+      } else {
+      // Vị trí bên trong robot (lúc phát kèm video)
+        robotModel.position.set(0.2000, 1.2800, 0.7750);
+        robotModel.rotation.y = -0.2500;
+        robotModel.rotation.x = 0;
+        robotModel.scale.setScalar(0.1406);
+      }
+
       // Đổ bóng cho tất cả mesh
       robotModel.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = true;
           if (child.material) {
-            child.material.roughness = Math.min(child.material.roughness, 0.5);
-            child.material.metalness = Math.max(child.material.metalness, 0.3);
+            const processMaterial = (mat) => {
+              if ('roughness' in mat) mat.roughness = Math.min(mat.roughness, 0.5);
+              if ('metalness' in mat) mat.metalness = Math.max(mat.metalness, 0.3);
+            };
+            if (Array.isArray(child.material)) {
+              child.material.forEach(processMaterial);
+            } else {
+              processMaterial(child.material);
+            }
           }
         }
       });
 
       scene.add(robotModel);
 
-      // Bật Animation
+      // Bật Animation nếu là bước 2
       if (gltf.animations && gltf.animations.length > 0) {
         mixer = new THREE.AnimationMixer(robotModel);
         gltf.animations.forEach((clip) => {
           const action = mixer.clipAction(clip);
-          action.play();
+          actions.push(action);
+          if (currentStep === 2) {
+            action.play();
+          }
         });
       }
     },
     undefined,
     (err) => {
-      console.error("Lỗi khi tải mô hình Doraemon:", err);
+      console.error("Lỗi khi tải mô hình 3D:", err);
       container.innerHTML = `<div style="color: #ef4444; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 0.9rem;">Lỗi tải mô hình 3D.</div>`;
     }
   );
@@ -537,7 +557,7 @@ export function initRobotViewer(container) {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
     if (controls) controls.update();
-    
+
     // Tự động xoay nhẹ mô hình
     if (robotModel && !controls.state === -1) {
       robotModel.rotation.y += 0.003;
@@ -545,7 +565,7 @@ export function initRobotViewer(container) {
 
     renderer.render(scene, camera);
   }
-  
+
   animate();
 
   // Resize Handler
@@ -564,6 +584,31 @@ export function initRobotViewer(container) {
 
   return {
     getModel: () => robotModel,
+    setState: (step) => {
+      currentStep = step;
+      if (!robotModel) return;
+      if (step === 1) {
+        // Robot ở center, dừng animation
+        robotModel.position.set(0.0000, -0.4200, -0.0250);
+        robotModel.rotation.set(0, 0, 0);
+        robotModel.scale.setScalar(0.4806);
+        if (mixer) {
+          actions.forEach(action => action.stop());
+        }
+      } else if (step === 2) {
+        // Robot ở cột 30% bên phải, chạy animation
+        robotModel.position.set(0.2000, 1.2800, 0.7750);
+        robotModel.rotation.y = -0.2500;
+        robotModel.rotation.x = 0;
+        robotModel.scale.setScalar(0.1406);
+        if (mixer) {
+          actions.forEach(action => {
+            action.reset();
+            action.play();
+          });
+        }
+      }
+    },
     destroy: () => {
       isDestroyed = true;
       resizeObserver.disconnect();

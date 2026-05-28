@@ -83,9 +83,18 @@ function updateStage3Carousel() {
         if (carouselIndex === 0) {
           if (chartContainer) {
             chartContainer.style.display = 'block';
+            chartContainer.style.position = 'relative';
+            chartContainer.style.width = '';
+            chartContainer.style.height = '';
             chartContainer.style.flex = '1.5';
+            chartContainer.style.pointerEvents = 'auto';
           }
-          if (leftContent) leftContent.style.flex = '1';
+          if (leftContent) {
+            leftContent.style.display = 'flex';
+            leftContent.style.flex = '1';
+            leftContent.style.width = '';
+            leftContent.style.height = '';
+          }
 
           // Thay đổi nội dung chi tiết dựa trên loại biểu đồ đang hiển thị
           if (detailDesc) {
@@ -112,37 +121,96 @@ function updateStage3Carousel() {
         } else if (carouselIndex === 1) {
           if (chartContainer) {
             chartContainer.style.display = 'block';
-            chartContainer.style.flex = '4';
           }
-          if (leftContent) leftContent.style.flex = '6';
+          
+          if (stage3SubStep === 1) {
+            // Bước 1: Robot ở trung tâm (đừng chạy animation), ẩn video.
+            if (leftContent) leftContent.style.display = 'none';
+            if (chartContainer) {
+              chartContainer.style.position = 'relative';
+              chartContainer.style.width = '100%';
+              chartContainer.style.height = '100%';
+              chartContainer.style.flex = '1';
+              chartContainer.style.pointerEvents = 'auto';
+            }
+            if (detailDesc) {
+              detailDesc.style.width = '';
+              detailDesc.style.height = '';
+              detailDesc.style.display = '';
+              detailDesc.style.margin = '';
+              detailDesc.innerHTML = ''; 
+            }
 
-          if (detailDesc) {
-            detailDesc.innerHTML = `
-              <div style="font-family: var(--font-ui); font-size: 1.15rem; line-height: 1.8; color: #cbd5e1; display: flex; flex-direction: column; gap: 16px;">
-                <h4 style="font-family: var(--font-tech); color: #00f2fe; font-size: 1.6rem; margin-bottom: 12px; font-weight: bold; border-left: 4px solid #00f2fe; padding-left: 12px; letter-spacing: 1px;">AGENT THU THẬP DỮ LIỆU TỰ ĐỘNG</h4>
-                <ul style="list-style-type: disc; padding-left: 24px; display: flex; flex-direction: column; gap: 16px;">
-                  <li style="font-size: 1.25rem;"><strong style="color: #ffffff;">Tự động quét & thu thập:</strong> Quét dữ liệu đa nguồn từ các chi nhánh, POS và cổng thanh toán trực tuyến theo thời gian thực.</li>
-                  <li style="font-size: 1.25rem;"><strong style="color: #ffffff;">Chuẩn hóa & Làm sạch dữ liệu:</strong> Xử lý các điểm dữ liệu thô, loại bỏ các bản ghi trùng lặp và làm sạch nhiễu trước khi tải vào kho dữ liệu.</li>
-                  <li style="font-size: 1.25rem;"><strong style="color: #ffffff;">Vận hành liên tục 24/7:</strong> Hệ thống Agent chạy ngầm, tự động kết nối lại và đồng bộ hóa bù đắp khi có sự cố mạng xảy ra.</li>
-                </ul>
-              </div>
-            `;
-          }
+            if (!activeRobotViewer) {
+              setTimeout(() => {
+                const canvasContainer = document.getElementById('stage3-chart-container');
+                if (canvasContainer) {
+                  activeRobotViewer = initRobotViewer(canvasContainer);
+                  activeRobotViewer.setState(1);
+                }
+              }, 50);
+            } else {
+              activeRobotViewer.setState(1);
+            }
+          } else if (stage3SubStep === 2) {
+            // Bước 2: 9 phần video bên trái, 1 phần robot bên phải và chạy animation.
+            if (leftContent) {
+              leftContent.style.display = 'flex';
+              leftContent.style.width = '100%';
+              leftContent.style.height = '100%';
+              leftContent.style.flex = '9';
+            }
+            if (chartContainer) {
+              chartContainer.style.position = 'relative';
+              chartContainer.style.left = '';
+              chartContainer.style.top = '';
+              chartContainer.style.width = '100%';
+              chartContainer.style.height = '100%';
+              chartContainer.style.flex = '1';
+              chartContainer.style.pointerEvents = 'auto';
+            }
 
-          if (!activeRobotViewer) {
-            setTimeout(() => {
-              const canvasContainer = document.getElementById('stage3-chart-container');
-              if (canvasContainer) {
-                activeRobotViewer = initRobotViewer(canvasContainer);
-              }
-            }, 50);
+            if (detailDesc) {
+              detailDesc.style.width = '100%';
+              detailDesc.style.height = '100%';
+              detailDesc.style.display = 'flex';
+              detailDesc.style.margin = '0';
+              detailDesc.innerHTML = `
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+                  <div style="width: 100%; height: 100%; position: relative; overflow: hidden; background: transparent;">
+                    <video src="assets/EZB.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: screen;"></video>
+                  </div>
+                </div>
+              `;
+            }
+
+            if (!activeRobotViewer) {
+              setTimeout(() => {
+                const canvasContainer = document.getElementById('stage3-chart-container');
+                if (canvasContainer) {
+                  activeRobotViewer = initRobotViewer(canvasContainer);
+                  activeRobotViewer.setState(2);
+                }
+              }, 50);
+            } else {
+              activeRobotViewer.setState(2);
+            }
           }
         } else if (carouselIndex === 2) {
           if (chartContainer) {
             chartContainer.style.display = 'none';
+            chartContainer.style.position = 'relative';
+            chartContainer.style.width = '';
+            chartContainer.style.height = '';
             chartContainer.style.flex = '1.5';
+            chartContainer.style.pointerEvents = 'auto';
           }
-          if (leftContent) leftContent.style.flex = '1';
+          if (leftContent) {
+            leftContent.style.display = 'flex';
+            leftContent.style.flex = '1';
+            leftContent.style.width = '';
+            leftContent.style.height = '';
+          }
           if (detailDesc) {
             detailDesc.innerHTML = `
               <div class="analysis-flowcharts-container">
@@ -392,13 +460,23 @@ function setupStage3CarouselEvents() {
           isDetailActive = true;
           stage3ChartType = 'bar';
           updateStage3Carousel();
-          logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
-        } else if (stage3SubStep === 1) {
           if (carouselIndex === 0) {
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
+          } else if (carouselIndex === 1) {
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Robot trung tâm)`, "cyan");
+          } else {
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Hệ thống phân tích)`, "cyan");
+          }
+        } else if (stage3SubStep === 1) {
+          if (carouselIndex === 0 || carouselIndex === 1) {
             stage3SubStep = 2;
-            stage3ChartType = 'area';
+            if (carouselIndex === 0) {
+              stage3ChartType = 'area';
+              logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ miền)`, "cyan");
+            } else {
+              logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Video & Robot)`, "cyan");
+            }
             updateStage3Carousel();
-            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ miền)`, "cyan");
           } else {
             stage3SubStep = 3;
             isDetailActive = false;
@@ -1157,19 +1235,29 @@ function setupEvents() {
         e.preventDefault();
         e.stopPropagation();
         if (stage3SubStep === 0) {
-          // Lần 1: Mở nội dung chi tiết (biểu đồ cột)
+          // Lần 1: Mở nội dung chi tiết (biểu đồ cột / robot trung tâm)
           stage3SubStep = 1;
           isDetailActive = true;
           stage3ChartType = 'bar';
           updateStage3Carousel();
-          logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
-        } else if (stage3SubStep === 1) {
           if (carouselIndex === 0) {
-            // Lần 2 (đối với Agent): Chuyển sang biểu đồ miền (area)
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
+          } else if (carouselIndex === 1) {
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Robot trung tâm)`, "cyan");
+          } else {
+            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Hệ thống phân tích)`, "cyan");
+          }
+        } else if (stage3SubStep === 1) {
+          if (carouselIndex === 0 || carouselIndex === 1) {
+            // Lần 2 (đối với Agent / Robot): Chuyển sang bước 2 (Biểu đồ miền / Video & Robot)
             stage3SubStep = 2;
-            stage3ChartType = 'area';
+            if (carouselIndex === 0) {
+              stage3ChartType = 'area';
+              logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ miền)`, "cyan");
+            } else {
+              logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Video & Robot)`, "cyan");
+            }
             updateStage3Carousel();
-            logToTerminal(`Carousel: Đang xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ miền)`, "cyan");
           } else {
             // Với các thẻ khác: Đóng chi tiết
             stage3SubStep = 3;
@@ -1179,7 +1267,7 @@ function setupEvents() {
             logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
           }
         } else if (stage3SubStep === 2) {
-          // Lần 3 (đối với Agent): Đóng chi tiết
+          // Lần 3 (đối với Agent / Robot): Đóng chi tiết
           stage3SubStep = 3;
           isDetailActive = false;
           readyToTransition = true;
@@ -1275,18 +1363,22 @@ function setupEvents() {
           updateStage3Carousel();
           logToTerminal(`Carousel: Đã đóng chi tiết ảnh ${carouselIndex + 1}`, "cyan");
         } else if (stage3SubStep === 2) {
-          // Từ Biểu đồ Miền quay về Biểu đồ Cột (chỉ áp dụng cho slide 0)
+          // Từ bước 2 quay về bước 1 (áp dụng cho slide 0 và 1)
           stage3SubStep = 1;
-          stage3ChartType = 'bar';
-          updateStage3Carousel();
-          logToTerminal(`Carousel: Quay lại xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
-        } else if (stage3SubStep === 3) {
-          // Từ trạng thái chờ chuyển quay lại Biểu đồ Miền (nếu index 0) hoặc Biểu đồ Cột (nếu index khác)
           if (carouselIndex === 0) {
+            stage3ChartType = 'bar';
+            logToTerminal(`Carousel: Quay lại xem chi tiết ảnh ${carouselIndex + 1} (Biểu đồ cột)`, "cyan");
+          } else {
+            logToTerminal(`Carousel: Quay lại xem chi tiết ảnh ${carouselIndex + 1} (Robot trung tâm)`, "cyan");
+          }
+          updateStage3Carousel();
+        } else if (stage3SubStep === 3) {
+          // Từ trạng thái chờ chuyển quay lại bước 2 (nếu index 0 hoặc 1) hoặc bước 1 (nếu index khác)
+          if (carouselIndex === 0 || carouselIndex === 1) {
             stage3SubStep = 2;
             isDetailActive = true;
             readyToTransition = false;
-            stage3ChartType = 'area';
+            if (carouselIndex === 0) stage3ChartType = 'area';
           } else {
             stage3SubStep = 1;
             isDetailActive = true;
