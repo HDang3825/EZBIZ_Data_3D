@@ -188,7 +188,7 @@ function updateStage3Carousel() {
               detailDesc.innerHTML = `
                 <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
                   <div style="width: 100%; height: 100%; position: relative; overflow: hidden; background: transparent;">
-                    <video src="assets/EZB.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: screen;"></video>
+                    <video src="assets/EZB1.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: screen;"></video>
                   </div>
                 </div>
               `;
@@ -229,25 +229,25 @@ function updateStage3Carousel() {
                   <h3>Gợi Ý Sản Phẩm</h3>
                   <div class="beam-node database">Data Warehouse</div>
                   <div class="beam-connector long-connector">
-                    <svg width="20" height="104" viewBox="0 0 20 104">
-                      <path class="animated-beam-bg" d="M10 0 L10 104" />
-                      <path class="animated-beam-line color-pink" d="M10 0 L10 104" />
+                    <svg width="20" height="120" viewBox="0 0 20 120">
+                      <path class="animated-beam-bg" d="M10 0 L10 120" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 120" />
                     </svg>
                     <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;"> Làm phẳng</span>
                   </div>
                   <div class="beam-node">Tính toán mối liên hệ bằng thuật toán Apriori</div>
                   <div class="beam-connector long-connector">
-                    <svg width="20" height="104" viewBox="0 0 20 104">
-                      <path class="animated-beam-bg" d="M10 0 L10 104" />
-                      <path class="animated-beam-line color-pink" d="M10 0 L10 104" />
+                    <svg width="20" height="120" viewBox="0 0 20 120">
+                      <path class="animated-beam-bg" d="M10 0 L10 120" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 120" />
                     </svg>
                     <span class="beam-label" style="font-size: 0.8rem; max-width: 120px;">Tối ưu support và confident</span>
                   </div>
                   <div class="beam-node">Sort lại theo confident</div>
                   <div class="beam-connector long-connector">
-                    <svg width="20" height="104" viewBox="0 0 20 104">
-                      <path class="animated-beam-bg" d="M10 0 L10 104" />
-                      <path class="animated-beam-line color-pink" d="M10 0 L10 104" />
+                    <svg width="20" height="120" viewBox="0 0 20 120">
+                      <path class="animated-beam-bg" d="M10 0 L10 120" />
+                      <path class="animated-beam-line color-pink" d="M10 0 L10 120" />
                     </svg>
                     <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;">API</span>
                   </div>
@@ -261,12 +261,12 @@ function updateStage3Carousel() {
                     <div class="beam-node">Giá thị trường được Agent thu thập</div>
                     <div class="beam-node">Tính giá bán trung bình trên app</div>
                   </div>
-                  <div class="flow-merge-container" style="height: 48px;">
-                    <svg width="100%" height="48" viewBox="0 0 300 48" preserveAspectRatio="none">
-                      <path class="animated-beam-bg" d="M 75 0 L 75 48" />
-                      <path class="animated-beam-line color-cyan" d="M 75 0 L 75 48" />
-                      <path class="animated-beam-bg" d="M 225 0 L 225 48" />
-                      <path class="animated-beam-line color-cyan" d="M 225 0 L 225 48" />
+                  <div class="flow-merge-container" style="height: 55px;">
+                    <svg width="100%" height="55" viewBox="0 0 300 55" preserveAspectRatio="none">
+                      <path class="animated-beam-bg" d="M 75 0 L 75 55" />
+                      <path class="animated-beam-line color-cyan" d="M 75 0 L 75 55" />
+                      <path class="animated-beam-bg" d="M 225 0 L 225 55" />
+                      <path class="animated-beam-line color-cyan" d="M 225 0 L 225 55" />
                     </svg>
                     <span class="beam-label" style="left: 25%; transform: translate(-50%, -50%); top: 50%; font-size: 0.8rem; white-space: nowrap;">Làm sạch, làm đầy</span>
                   </div>
@@ -274,12 +274,12 @@ function updateStage3Carousel() {
                     <div class="beam-node">Tổng hợp giá theo mốc 7/30/90 ngày</div>
                     <div class="beam-node">Tổng hợp giá theo mốc 7/30/90 ngày</div>
                   </div>
-                  <div class="flow-merge-container" style="height: 48px;">
-                    <svg width="100%" height="48" viewBox="0 0 300 48" preserveAspectRatio="none">
-                      <path class="animated-beam-bg" d="M 75 0 L 75 48" />
-                      <path class="animated-beam-line color-cyan" d="M 75 0 L 75 48" />
-                      <path class="animated-beam-bg" d="M 225 0 L 225 48" />
-                      <path class="animated-beam-line color-cyan" d="M 225 0 L 225 48" />
+                  <div class="flow-merge-container" style="height: 55px;">
+                    <svg width="100%" height="55" viewBox="0 0 300 55" preserveAspectRatio="none">
+                      <path class="animated-beam-bg" d="M 75 0 L 75 55" />
+                      <path class="animated-beam-line color-cyan" d="M 75 0 L 75 55" />
+                      <path class="animated-beam-bg" d="M 225 0 L 225 55" />
+                      <path class="animated-beam-line color-cyan" d="M 225 0 L 225 55" />
                     </svg>
                   </div>
                   <div class="nodes-row">
@@ -287,27 +287,27 @@ function updateStage3Carousel() {
                     <div class="beam-node">Kết quả 2</div>
                   </div>
                   
-                  <div class="flow-merge-container" style="height: 50px;">
-                    <svg width="100%" height="50" viewBox="0 0 300 50" preserveAspectRatio="none">
-                      <path class="animated-beam-bg" d="M 75 0 L 150 50" />
-                      <path class="animated-beam-line color-cyan" d="M 75 0 L 150 50" />
-                      <path class="animated-beam-bg" d="M 225 0 L 150 50" />
-                      <path class="animated-beam-line color-cyan" d="M 225 0 L 150 50" />
+                  <div class="flow-merge-container" style="height: 58px;">
+                    <svg width="100%" height="58" viewBox="0 0 300 58" preserveAspectRatio="none">
+                      <path class="animated-beam-bg" d="M 75 0 L 150 58" />
+                      <path class="animated-beam-line color-cyan" d="M 75 0 L 150 58" />
+                      <path class="animated-beam-bg" d="M 225 0 L 150 58" />
+                      <path class="animated-beam-line color-cyan" d="M 225 0 L 150 58" />
                     </svg>
                   </div>
                   <div class="beam-node">Tính toán chỉ số biến động thị trường</div>
                   <div class="beam-connector">
-                    <svg width="20" height="40" viewBox="0 0 20 40">
-                      <path class="animated-beam-bg" d="M10 0 L10 40" />
-                      <path class="animated-beam-line color-cyan" d="M10 0 L10 40" />
+                    <svg width="20" height="46" viewBox="0 0 20 46">
+                      <path class="animated-beam-bg" d="M10 0 L10 46" />
+                      <path class="animated-beam-line color-cyan" d="M10 0 L10 46" />
                     </svg>
                     <span class="beam-label" style="font-size: 0.8rem; white-space: nowrap;">Thực hiện so sánh</span>
                   </div>
                   <div class="beam-node">Chạy qua thuật toán tối ưu giá</div>
                   <div class="beam-connector">
-                    <svg width="20" height="40" viewBox="0 0 20 40">
-                      <path class="animated-beam-bg" d="M10 0 L10 40" />
-                      <path class="animated-beam-line color-cyan" d="M10 0 L10 40" />
+                    <svg width="20" height="46" viewBox="0 0 20 46">
+                      <path class="animated-beam-bg" d="M10 0 L10 46" />
+                      <path class="animated-beam-line color-cyan" d="M10 0 L10 46" />
                     </svg>
                   </div>
                   <div class="beam-node">Trả về trạng thái, giá tối ưu và nhận xét</div>
@@ -318,37 +318,37 @@ function updateStage3Carousel() {
                   <h3> Hiệu Quả Kinh Doanh</h3>
                   <div class="beam-node">Giá thị trường làm tham chiếu</div>
                   <div class="beam-connector">
-                    <svg width="20" height="40" viewBox="0 0 20 40">
-                      <path class="animated-beam-bg" d="M10 0 L10 40" />
-                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    <svg width="20" height="46" viewBox="0 0 20 46">
+                      <path class="animated-beam-bg" d="M10 0 L10 46" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 46" />
                     </svg>
                   </div>
                   <div class="beam-node">Tính toán doanh thu và số lượng bán ra theo các mốc 1/7/30/365 ngày</div>
                   <div class="beam-connector">
-                    <svg width="20" height="40" viewBox="0 0 20 40">
-                      <path class="animated-beam-bg" d="M10 0 L10 40" />
-                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    <svg width="20" height="46" viewBox="0 0 20 46">
+                      <path class="animated-beam-bg" d="M10 0 L10 46" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 46" />
                     </svg>
                   </div>
                   <div class="beam-node">So sánh tổng quan cửa hàng</div>
                   <div class="beam-connector">
-                    <svg width="20" height="40" viewBox="0 0 20 40">
-                      <path class="animated-beam-bg" d="M10 0 L10 40" />
-                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    <svg width="20" height="46" viewBox="0 0 20 46">
+                      <path class="animated-beam-bg" d="M10 0 L10 46" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 46" />
                     </svg>
                   </div>
                   <div class="beam-node">Quy đổi thành tỉ lệ tăng trưởng</div>
                   <div class="beam-connector">
-                    <svg width="20" height="40" viewBox="0 0 20 40">
-                      <path class="animated-beam-bg" d="M10 0 L10 40" />
-                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    <svg width="20" height="46" viewBox="0 0 20 46">
+                      <path class="animated-beam-bg" d="M10 0 L10 46" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 46" />
                     </svg>
                   </div>
                   <div class="beam-node">Tính % tăng doanh thu và sản lượng theo các mốc 1/7/30/365 ngày</div>
                   <div class="beam-connector">
-                    <svg width="20" height="40" viewBox="0 0 20 40">
-                      <path class="animated-beam-bg" d="M10 0 L10 40" />
-                      <path class="animated-beam-line color-green" d="M10 0 L10 40" />
+                    <svg width="20" height="46" viewBox="0 0 20 46">
+                      <path class="animated-beam-bg" d="M10 0 L10 46" />
+                      <path class="animated-beam-line color-green" d="M10 0 L10 46" />
                     </svg>
                   </div>
                   <div class="beam-node">Đánh giá hiệu quả cửa hàng so với thị trường</div>

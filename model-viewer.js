@@ -502,8 +502,8 @@ export function initRobotViewer(container) {
         robotModel.rotation.set(0, 0, 0);
         robotModel.scale.setScalar(0.4806);
       } else {
-      // Vị trí bên trong robot (lúc phát kèm video)
-        robotModel.position.set(0.2000, 1.2800, 0.7750);
+        // Vị trí bên trong robot (lúc phát kèm video)
+        robotModel.position.set(0.1000, 1.2800, 0.7750);
         robotModel.rotation.y = -0.2500;
         robotModel.rotation.x = 0;
         robotModel.scale.setScalar(0.1406);
@@ -597,7 +597,7 @@ export function initRobotViewer(container) {
         }
       } else if (step === 2) {
         // Robot ở cột 30% bên phải, chạy animation
-        robotModel.position.set(0.2000, 1.2800, 0.7750);
+        robotModel.position.set(0.1000, 1.2800, 0.7750);
         robotModel.rotation.y = -0.2500;
         robotModel.rotation.x = 0;
         robotModel.scale.setScalar(0.1406);
