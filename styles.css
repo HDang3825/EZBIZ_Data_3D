@@ -1309,3 +1309,130 @@ h2 {
 .long-connector svg {
   height: 138px !important;
 }
+
+/* ==========================================
+   MOBILE BLOCKER SCREEN
+   ========================================== */
+#mobile-blocker-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+  z-index: 99999999;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Show blocker, hide the rest of the body */
+html.mobile-blocked #mobile-blocker-overlay {
+  display: flex !important;
+}
+
+html.mobile-blocked body > *:not(#mobile-blocker-overlay) {
+  display: none !important;
+}
+
+/* Glassmorphism blocker card */
+.mobile-blocker-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 20px;
+  padding: 40px 24px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(56, 189, 248, 0.15);
+  position: relative;
+  overflow: hidden;
+  animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-blocker-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  position: relative;
+}
+
+.mobile-blocker-icon svg {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.4));
+}
+
+.mobile-blocker-card h2 {
+  font-family: var(--font-tech);
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  border-left: none;
+  padding-left: 0;
+  text-transform: uppercase;
+}
+
+.mobile-blocker-card h1 {
+  font-family: var(--font-tech);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ffffff;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.mobile-blocker-card p {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 28px;
+}
+
+.mobile-blocker-badge {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-family: var(--font-tech);
+  font-size: 0.78rem;
+  letter-spacing: 1px;
+  font-weight: 600;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+}
+
+.mobile-blocker-decor {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.mobile-blocker-decor span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.3);
+}
+
+.mobile-blocker-decor span:nth-child(2) {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}

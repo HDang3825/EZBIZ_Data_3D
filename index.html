@@ -5,6 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mô Hình 3D Data Warehouse EZBIZ </title>
+  <script>
+    (function() {
+      var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
+      if (isMobile) {
+        document.documentElement.classList.add('mobile-blocked');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="styles.css">
@@ -24,6 +32,28 @@
 </head>
 
 <body>
+  <!-- Mobile Blocker Overlay -->
+  <div id="mobile-blocker-overlay">
+    <div class="mobile-blocker-card">
+      <div class="mobile-blocker-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          <line x1="3" y1="3" x2="21" y2="21" stroke="#dc2626" stroke-width="2"></line>
+        </svg>
+      </div>
+      <h2>TRẢI NGHIỆM HẠN CHẾ</h2>
+      <h1>KHÔNG HỖ TRỢ DI ĐỘNG</h1>
+      <p>Mô hình 3D Data Warehouse EZBIZ yêu cầu màn hình lớn và hiệu năng đồ họa cao để mang lại trải nghiệm phân tích tốt nhất.</p>
+      <div class="mobile-blocker-badge">Vui lòng truy cập trên máy tính (PC / Laptop)</div>
+      <div class="mobile-blocker-decor">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
   <!-- Cinematic Transition Overlay -->
   <div id="transition-overlay"></div>
 
